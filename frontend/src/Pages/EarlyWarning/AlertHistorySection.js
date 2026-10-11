@@ -828,9 +828,6 @@ export function AlertHistorySection({
               <th style={{ padding: "12px 14px", fontWeight: 700 }}>
                 Location
               </th>
-              <th style={{ padding: "12px 14px", fontWeight: 700 }}>
-                Severity
-              </th>
               <th style={{ padding: "12px 14px", fontWeight: 700 }}>Issued</th>
               <th style={{ padding: "12px 14px", fontWeight: 700 }}>
                 Resolved
@@ -838,23 +835,13 @@ export function AlertHistorySection({
               <th style={{ padding: "12px 14px", fontWeight: 700 }}>
                 Duration
               </th>
-              <th style={{ padding: "12px 14px", fontWeight: 700 }}>Status</th>
-              <th
-                style={{
-                  padding: "12px 14px",
-                  fontWeight: 700,
-                  textAlign: "right",
-                }}
-              >
-                Action
-              </th>
             </tr>
           </thead>
           <tbody>
             {filteredAlerts.length === 0 ? (
               <tr>
                 <td
-                  colSpan="9"
+                  colSpan="6"
                   style={{
                     padding: "32px",
                     textAlign: "center",
@@ -866,8 +853,6 @@ export function AlertHistorySection({
               </tr>
             ) : (
               filteredAlerts.map((alert, idx) => {
-                const sevStyle =
-                  SEVERITY_COLORS[alert.severity] || SEVERITY_COLORS.Warning;
                 const meta =
                   HAZARD_META[alert.hazard?.toLowerCase()] || HAZARD_META.flood;
                 const isActive = alert.status === "Active";
@@ -961,27 +946,6 @@ export function AlertHistorySection({
                       </div>
                     </td>
 
-                    {/* Severity */}
-                    <td style={{ padding: "12px 14px", whiteSpace: "nowrap" }}>
-                      <span
-                        style={{
-                          display: "inline-flex",
-                          alignItems: "center",
-                          gap: "4px",
-                          padding: "3px 8px",
-                          borderRadius: "999px",
-                          fontSize: "11px",
-                          fontWeight: 800,
-                          color: sevStyle.color,
-                          background: sevStyle.bg,
-                          border: `1px solid ${sevStyle.border}`,
-                        }}
-                      >
-                        <span>{sevStyle.icon}</span>
-                        <span>{alert.severity}</span>
-                      </span>
-                    </td>
-
                     {/* Issued */}
                     <td
                       style={{
@@ -1058,61 +1022,6 @@ export function AlertHistorySection({
                       }}
                     >
                       {alert.duration || "—"}
-                    </td>
-
-                    {/* Status */}
-                    <td style={{ padding: "12px 14px", whiteSpace: "nowrap" }}>
-                      <span
-                        style={{
-                          display: "inline-flex",
-                          alignItems: "center",
-                          gap: "4px",
-                          padding: "2px 8px",
-                          borderRadius: "6px",
-                          fontSize: "10.5px",
-                          fontWeight: 800,
-                          color: isActive ? "#ef4444" : "#16a34a",
-                          background: isActive
-                            ? isDark
-                              ? "rgba(239,68,68,0.15)"
-                              : "#fee2e2"
-                            : isDark
-                              ? "rgba(34,197,94,0.15)"
-                              : "#dcfce7",
-                          border: isActive
-                            ? "1px solid rgba(239,68,68,0.3)"
-                            : "1px solid rgba(34,197,94,0.3)",
-                        }}
-                      >
-                        {isActive ? "🚨 Active" : "✅ Resolved"}
-                      </span>
-                    </td>
-
-                    {/* Action */}
-                    <td
-                      style={{
-                        padding: "12px 14px",
-                        textAlign: "right",
-                        whiteSpace: "nowrap",
-                      }}
-                    >
-                      <div style={{ display: "inline-flex", gap: "6px" }}>
-                        <button
-                          onClick={() => setDetailModalAlert(alert)}
-                          style={{
-                            padding: "4px 8px",
-                            borderRadius: "6px",
-                            border: "1px solid var(--border-light)",
-                            background: "var(--bg-card)",
-                            color: "#0284c7",
-                            fontSize: "11px",
-                            fontWeight: 700,
-                            cursor: "pointer",
-                          }}
-                        >
-                          Details
-                        </button>
-                      </div>
                     </td>
                   </tr>
                 );

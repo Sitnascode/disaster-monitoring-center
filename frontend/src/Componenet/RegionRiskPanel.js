@@ -266,8 +266,7 @@ const SHAPE_NAME_TO_ID = {
 export function getFeatureRegionId(feature) {
   if (!feature || !feature.properties) return null;
   const p = feature.properties;
-  const name =
-    p.shapeName || p.name || p.NAME_1 || p.ADM1_EN || p.region || "";
+  const name = p.shapeName || p.name || p.NAME_1 || p.ADM1_EN || p.region || "";
   if (SHAPE_NAME_TO_ID[name]) return SHAPE_NAME_TO_ID[name];
   const clean = name.toLowerCase().replace(/[^a-z]/g, "");
   const found = ETHIOPIA_REGIONS.find(
@@ -518,111 +517,126 @@ export function RegionGeoLayer({
   const geo = regionsGeo || geojsonData || geojson;
   const currentRegion = activeRegion || selectedRegion;
   const handleSelect = onSelect || onSelectRegion;
-  const map = useMap();
-  const isFirstRender = useRef(true);
-
-  // Fit map to the selected region's bounding box so the entire region is visible
-  useEffect(() => {
-    if (!currentRegion || !map) return;
-    try {
-      if (!map._loaded || !map.getPanes || !map.getPanes()?.mapPane) return;
-      const b = REGION_BOUNDS[currentRegion];
-      if (b) {
-        map.flyToBounds(
-          [
-            [b.minLat, b.minLon],
-            [b.maxLat, b.maxLon],
-          ],
-          {
-            paddingTopLeft: [24, 24],
-            paddingBottomRight: [260, 24],
-            maxZoom: 9,
-            animate: true,
-            duration: 1.0,
-          },
-        );
-      } else {
-        // Fallback for regions without explicit bounds
-        const region = ETHIOPIA_REGIONS.find((r) => r.id === currentRegion);
-        if (region) {
-          map.flyTo([region.lat, region.lon], region.zoom, {
-            animate: true,
-            duration: 1.0,
-          });
-        }
-      }
-    } catch (err) {}
-  }, [currentRegion, map]);
-
-  // When region is cleared (X button), fit back to full Ethiopia (skip on initial mount)
-  useEffect(() => {
-    if (isFirstRender.current) {
-      isFirstRender.current = false;
-      return;
-    }
-
-    if (currentRegion === null && map) {
-      let isMounted = true;
-      const t = setTimeout(() => {
-        if (!isMounted || !map) return;
-        try {
-          if (!map._loaded || !map.getPanes || !map.getPanes()?.mapPane) return;
-          map.invalidateSize({ animate: false });
-          map.fitBounds(
-            [
-              [3.0, 32.5],
-              [15.2, 48.4],
-            ],
-            { padding: [6, 6], animate: false },
-          );
-        } catch (err) {}
-      }, 50);
-
-      return () => {
-        isMounted = false;
-        clearTimeout(t);
-      };
-    }
-  }, [currentRegion, map]);
 
   if (!geo) return null;
 
   return (
-    <GeoJSON
-      key={currentRegion || "all"}
-      data={geo}
-      style={(feature) => {
-        const id = getFeatureRegionId(feature);
-        const region = ETHIOPIA_REGIONS.find((r) => r.id === id);
-        if (!region) return { fillOpacity: 0, weight: 0 };
-        const isSelected = currentRegion === id || currentRegion === region.id;
-        // No colour at all when no region is selected
-        if (!currentRegion) {
-          return { fillOpacity: 0, weight: 0, opacity: 0 };
-        }
-        const liveR = regionRisks && regionRisks[id];
-        const rColor = liveR ? liveR.color : region.riskColor;
-        return {
-          color: isSelected ? rColor : "rgba(255,255,255,0.18)",
-          weight: isSelected ? 3.0 : 0.6,
-          fillColor: rColor,
-          fillOpacity: isSelected ? 0.38 : 0.04,
-          opacity: isSelected ? 1 : 0.35,
-        };
-      }}
-      onEachFeature={(feature, layer) => {
-        const id = getFeatureRegionId(feature);
-        const region = ETHIOPIA_REGIONS.find((r) => r.id === id);
-        if (region) {
-          layer.bindTooltip(
-            `<strong>${region.name}</strong><br/>${RISK_EMOJI[region.risk]} ${region.risk} Risk`,
-            { sticky: true },
-          );
-          layer.on("click", () => handleSelect && handleSelect(id));
-        }
-      }}
-    />
+    <>
+      {/* Stable controller — never remounts, handles all map flying */}
+      <MapFlyController currentRegion={currentRegion} />
+
+      <GeoJSON
+        key={currentRegion || "all"}
+        data={geo}
+        style={(feature) => {
+          const id = getFeatureRegionId(feature);
+          const region = ETHIOPIA_REGIONS.find((r) => r.id === id);
+          if (!region) return { fillOpacity: 0, weight: 0 };
+          const isSelected =
+            currentRegion === id || currentRegion === region.id;
+          // No colour at all when no region is selected
+          if (!currentRegion) {
+            return { fillOpacity: 0, weight: 0, opacity: 0 };
+          }
+          const liveR = regionRisks && regionRisks[id];
+          const rColor = liveR ? liveR.color : region.riskColor;
+          return {
+            color: isSelected ? rColor : "rgba(255,255,255,0.18)",
+            weight: isSelected ? 3.0 : 0.6,
+            fillColor: rColor,
+            fillOpacity: isSelected ? 0.38 : 0.04,
+            opacity: isSelected ? 1 : 0.35,
+          };
+        }}
+        onEachFeature={(feature, layer) => {
+          const id = getFeatureRegionId(feature);
+          const region = ETHIOPIA_REGIONS.find((r) => r.id === id);
+          if (region) {
+            layer.bindTooltip(
+              `<strong>${region.name}</strong><br/>${RISK_EMOJI[region.risk]} ${region.risk} Risk`,
+              { sticky: true },
+            );
+            layer.on("click", () => handleSelect && handleSelect(id));
+          }
+        }}
+      />
+    </>
   );
+}
+
+// ── MapFlyController — stable inner component that handles all map flying ──
+// Has a stable identity (no key changes), so its refs and effects persist
+// across region changes. RegionGeoLayer's GeoJSON can remount freely.
+function MapFlyController({ currentRegion }) {
+  const map = useMap();
+  const prevRegion = useRef(undefined); // undefined = first render
+
+  useEffect(() => {
+    const prev = prevRegion.current;
+    prevRegion.current = currentRegion;
+
+    if (!map) return;
+
+    // ── Flying TO a region ──────────────────────────────────────────────────
+    if (currentRegion) {
+      try {
+        if (!map._loaded || !map.getPanes || !map.getPanes()?.mapPane) return;
+        const b = REGION_BOUNDS[currentRegion];
+        if (b) {
+          map.flyToBounds(
+            [
+              [b.minLat, b.minLon],
+              [b.maxLat, b.maxLon],
+            ],
+            {
+              paddingTopLeft: [24, 24],
+              paddingBottomRight: [260, 24],
+              maxZoom: 9,
+              animate: true,
+              duration: 1.0,
+            },
+          );
+        } else {
+          const region = ETHIOPIA_REGIONS.find((r) => r.id === currentRegion);
+          if (region) {
+            map.flyTo([region.lat, region.lon], region.zoom, {
+              animate: true,
+              duration: 1.0,
+            });
+          }
+        }
+      } catch (err) {}
+      return;
+    }
+
+    // ── Flying BACK to full Ethiopia (only when transitioning from a region) ─
+    // prev === undefined means first render (page load) — skip
+    // prev === null means it was already "All Ethiopia" — skip
+    if (prev === undefined || prev === null) return;
+
+    let isMounted = true;
+    const t = setTimeout(() => {
+      if (!isMounted || !map) return;
+      try {
+        if (!map._loaded || !map.getPanes || !map.getPanes()?.mapPane) return;
+        map.invalidateSize({ animate: false });
+        map.flyToBounds(
+          [
+            [3.0, 32.5],
+            [15.2, 48.4],
+          ],
+          { padding: [6, 6], animate: true, duration: 0.8 },
+        );
+      } catch (err) {}
+    }, 50);
+
+    return () => {
+      isMounted = false;
+      clearTimeout(t);
+    };
+  }, [currentRegion, map]);
+
+  return null;
 }
 
 // ── Region bounding boxes for point-in-region checking ────────────────────

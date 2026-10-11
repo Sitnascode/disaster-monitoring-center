@@ -335,17 +335,6 @@ function parseFrames(images) {
   return frames;
 }
 
-function cometTimeSeriesUrl(v) {
-  const region =
-    v.location?.[0]?.name?.replace(/ /g, "%20") || "Africa%20and%20Red%20Sea";
-  const country = (v.country || "Ethiopia")
-    .split("/")[0]
-    .trim()
-    .replace(/ /g, "%20");
-  const slug = v.name.replace(/ /g, "%20");
-  return `https://comet.nerc.ac.uk/comet-volcano-portal/volcano-index/${region}/${country}/${slug}/S1_analysis`;
-}
-
 const getApiBase = () =>
   window.location.port === "3000" ? "http://localhost:5002" : "";
 
@@ -629,33 +618,6 @@ function DetailPanel({ v, onClose }) {
             )}
           </div>
         )}
-
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "flex-end",
-            gap: 10,
-            marginTop: 14,
-          }}
-        >
-          <a
-            href={cometTimeSeriesUrl(v)}
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{
-              display: "inline-block",
-              background: "#ef4444",
-              color: "#fff",
-              textDecoration: "none",
-              padding: "8px 16px",
-              borderRadius: 6,
-              fontSize: 12,
-              fontWeight: 600,
-            }}
-          >
-            View COMET Volcano Portal →
-          </a>
-        </div>
       </div>
     </div>
   );

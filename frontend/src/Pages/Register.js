@@ -42,6 +42,7 @@ function Register() {
   const [showPw, setShowPw] = useState(false);
   const [showCpw, setShowCpw] = useState(false);
   const [agree, setAgree] = useState(false);
+  const [showTermsModal, setShowTermsModal] = useState(false);
   const [error, setError] = useState("");
   const [errorCode, setErrorCode] = useState("");
   const [emailError, setEmailError] = useState("");
@@ -500,7 +501,23 @@ function Register() {
                 onChange={() => setAgree(!agree)}
                 style={{ accentColor: BRAND, width: "14px", height: "14px" }}
               />
-              I accept the terms of the agreement
+              I accept the{" "}
+              <button
+                type="button"
+                onClick={() => setShowTermsModal(true)}
+                style={{
+                  background: "none",
+                  border: "none",
+                  padding: 0,
+                  color: BRAND,
+                  fontWeight: 700,
+                  fontSize: "12px",
+                  cursor: "pointer",
+                  textDecoration: "underline",
+                }}
+              >
+                Terms of Agreement
+              </button>
             </label>
 
             {error && (
@@ -615,6 +632,247 @@ function Register() {
           </Link>
         </div>
       </div>
+
+      {/* ── Terms of Agreement Modal ── */}
+      {showTermsModal && (
+        <div
+          onClick={() => setShowTermsModal(false)}
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(0,0,0,0.55)",
+            zIndex: 9999,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: "16px",
+          }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              background: "#fff",
+              borderRadius: "16px",
+              width: "100%",
+              maxWidth: "560px",
+              maxHeight: "80vh",
+              display: "flex",
+              flexDirection: "column",
+              boxShadow: "0 20px 60px rgba(0,0,0,0.25)",
+              overflow: "hidden",
+            }}
+          >
+            {/* Header */}
+            <div
+              style={{
+                padding: "18px 24px",
+                borderBottom: "1px solid #e8e8f0",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                flexShrink: 0,
+              }}
+            >
+              <div>
+                <div
+                  style={{
+                    fontSize: "11px",
+                    fontWeight: 700,
+                    color: BRAND,
+                    textTransform: "uppercase",
+                    letterSpacing: "0.06em",
+                  }}
+                >
+                  Geodesy &amp; Geodynamics Department — SSGI
+                </div>
+                <h2
+                  style={{
+                    margin: "2px 0 0",
+                    fontSize: "17px",
+                    fontWeight: 800,
+                    color: "#1e293b",
+                  }}
+                >
+                  Terms of Agreement
+                </h2>
+              </div>
+              <button
+                onClick={() => setShowTermsModal(false)}
+                style={{
+                  background: "#f1f5f9",
+                  border: "none",
+                  borderRadius: "8px",
+                  width: "32px",
+                  height: "32px",
+                  cursor: "pointer",
+                  fontSize: "18px",
+                  color: "#64748b",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  flexShrink: 0,
+                }}
+              >
+                ×
+              </button>
+            </div>
+
+            {/* Scrollable body */}
+            <div
+              style={{
+                overflowY: "auto",
+                padding: "20px 24px",
+                fontSize: "13px",
+                lineHeight: "1.7",
+                color: "#334155",
+              }}
+            >
+              <p style={{ marginTop: 0 }}>
+                By creating an account on the{" "}
+                <strong>
+                  Ethiopia Disaster Monitoring &amp; Early Warning Platform
+                </strong>{" "}
+                operated by the Geodesy &amp; Geodynamics Department, Space
+                Science and Geospatial Institute (SSGI), you agree to the
+                following terms.
+              </p>
+
+              <h4 style={{ color: "#1e293b", marginBottom: "4px" }}>
+                1. Eligibility
+              </h4>
+              <p>
+                Access is restricted to researchers, scientists, students, and
+                affiliated professionals with a legitimate academic or
+                operational interest in natural hazard monitoring in Ethiopia.
+                Registration is subject to administrator approval.
+              </p>
+
+              <h4 style={{ color: "#1e293b", marginBottom: "4px" }}>
+                2. Responsible Use
+              </h4>
+              <p>
+                You agree to use the platform solely for scientific research,
+                hazard monitoring, and disaster risk reduction activities.
+                Misuse of the system, including submission of false data or
+                unauthorized access attempts, will result in immediate account
+                termination.
+              </p>
+
+              <h4 style={{ color: "#1e293b", marginBottom: "4px" }}>
+                3. Data Submission
+              </h4>
+              <p>
+                All datasets, reports, and publications you submit must be your
+                original work or properly attributed. Submitted content is
+                reviewed by the department before publication. You grant SSGI a
+                non-exclusive right to display approved submissions on the
+                platform.
+              </p>
+
+              <h4 style={{ color: "#1e293b", marginBottom: "4px" }}>
+                4. Data Accuracy
+              </h4>
+              <p>
+                You are responsible for the accuracy and integrity of any data
+                you upload. The platform relies on contributor data for early
+                warning decisions; knowingly submitting incorrect or fabricated
+                data is strictly prohibited.
+              </p>
+
+              <h4 style={{ color: "#1e293b", marginBottom: "4px" }}>
+                5. Privacy
+              </h4>
+              <p>
+                Your personal information (name, email, phone, institution) is
+                collected solely for account management and alert notifications.
+                It will not be shared with third parties without your consent,
+                except as required by Ethiopian law.
+              </p>
+
+              <h4 style={{ color: "#1e293b", marginBottom: "4px" }}>
+                6. Alert Notifications
+              </h4>
+              <p>
+                By registering, you may receive SMS and email alerts related to
+                natural hazard events in Ethiopia. You can manage notification
+                preferences from your dashboard at any time.
+              </p>
+
+              <h4 style={{ color: "#1e293b", marginBottom: "4px" }}>
+                7. Intellectual Property
+              </h4>
+              <p>
+                Platform design, source code, and departmental content are the
+                property of SSGI / Geodesy &amp; Geodynamics Department.
+                Satellite data is sourced from NASA, ESA, and USGS under their
+                respective open-data licenses.
+              </p>
+
+              <h4 style={{ color: "#1e293b", marginBottom: "4px" }}>
+                8. Account Termination
+              </h4>
+              <p>
+                SSGI reserves the right to suspend or terminate any account that
+                violates these terms, at the sole discretion of the platform
+                administrator.
+              </p>
+
+              <p
+                style={{ color: "#64748b", fontSize: "11px", marginBottom: 0 }}
+              >
+                Last updated: October 2026 · Geodesy &amp; Geodynamics
+                Department, SSGI, Ethiopia
+              </p>
+            </div>
+
+            {/* Footer */}
+            <div
+              style={{
+                padding: "14px 24px",
+                borderTop: "1px solid #e8e8f0",
+                display: "flex",
+                justifyContent: "flex-end",
+                gap: "10px",
+                flexShrink: 0,
+              }}
+            >
+              <button
+                onClick={() => setShowTermsModal(false)}
+                style={{
+                  padding: "8px 20px",
+                  borderRadius: "8px",
+                  border: "1.5px solid #94a3b8",
+                  background: "#f1f5f9",
+                  color: "#1e293b",
+                  fontSize: "13px",
+                  fontWeight: 600,
+                  cursor: "pointer",
+                }}
+              >
+                Close
+              </button>
+              <button
+                onClick={() => {
+                  setAgree(true);
+                  setShowTermsModal(false);
+                }}
+                style={{
+                  padding: "8px 20px",
+                  borderRadius: "8px",
+                  border: "none",
+                  background: BRAND,
+                  color: "#fff",
+                  fontSize: "13px",
+                  fontWeight: 700,
+                  cursor: "pointer",
+                }}
+              >
+                I Agree
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

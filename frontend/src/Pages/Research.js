@@ -1414,7 +1414,11 @@ function Research() {
 
   // All uploads for this topic (before extra filters) — used by filter panel for researcher list
   const topicAllUploads = useMemo(() => {
-    const base = uploads.filter((u) => !u.title?.startsWith("Disaster Data:"));
+    const base = uploads.filter(
+      (u) =>
+        !u.title?.startsWith("Disaster Data:") &&
+        !u.title?.startsWith("Publication:"),
+    );
     if (!selectedTopic) return base;
     return base.filter((u) => uploadMatchesTopic(u, selectedTopic));
   }, [uploads, selectedTopic]);
@@ -1506,7 +1510,9 @@ function Research() {
     TOPICS.forEach((t) => {
       counts[t.id] = uploads.filter(
         (u) =>
-          uploadMatchesTopic(u, t.id) && !u.title?.startsWith("Disaster Data:"),
+          uploadMatchesTopic(u, t.id) &&
+          !u.title?.startsWith("Disaster Data:") &&
+          !u.title?.startsWith("Publication:"),
       ).length;
     });
     return counts;
@@ -1515,7 +1521,9 @@ function Research() {
   // Stats for the overview header
   const stats = useMemo(() => {
     const research = uploads.filter(
-      (u) => !u.title?.startsWith("Disaster Data:"),
+      (u) =>
+        !u.title?.startsWith("Disaster Data:") &&
+        !u.title?.startsWith("Publication:"),
     );
     const researchers = new Set(
       research.map((u) => u.uploadedBy).filter(Boolean),

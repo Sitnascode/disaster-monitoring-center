@@ -2581,12 +2581,9 @@ function AdminPanel() {
                             "Alert ID",
                             "Hazard",
                             "Location",
-                            "Severity",
                             "Issued",
-                            "Status",
                             "SMS",
                             "Email",
-                            "Action",
                           ].map((h) => (
                             <th key={h} className="px-3 py-3 font-700">
                               {h}
@@ -2596,14 +2593,6 @@ function AdminPanel() {
                       </thead>
                       <tbody>
                         {alertHistory.map((a, idx) => {
-                          const sevColors = {
-                            Emergency: "#ef4444",
-                            Warning: "#f97316",
-                            Watch: "#eab308",
-                            Advisory: "#22c55e",
-                          };
-                          const col = sevColors[a.severity] || "#6b7280";
-                          const isActive = a.status === "Active";
                           return (
                             <tr
                               key={a.alertId || idx}
@@ -2620,18 +2609,6 @@ function AdminPanel() {
                               <td className="px-3 py-3 text-gray-600 dark:text-gray-300 max-w-[180px] truncate">
                                 {a.location}
                               </td>
-                              <td className="px-3 py-3">
-                                <span
-                                  className="px-2 py-0.5 rounded-full text-[10px] font-bold"
-                                  style={{
-                                    color: col,
-                                    background: col + "20",
-                                    border: `1px solid ${col}44`,
-                                  }}
-                                >
-                                  {a.severity}
-                                </span>
-                              </td>
                               <td className="px-3 py-3 text-gray-500 dark:text-gray-400 whitespace-nowrap">
                                 {a.issuedAt
                                   ? new Date(a.issuedAt).toLocaleDateString(
@@ -2645,39 +2622,11 @@ function AdminPanel() {
                                     )
                                   : "—"}
                               </td>
-                              <td className="px-3 py-3">
-                                <span
-                                  className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${isActive ? "bg-red-100 dark:bg-red-900/20 text-red-600" : "bg-green-100 dark:bg-green-900/20 text-green-600"}`}
-                                >
-                                  {isActive ? "Active" : "Resolved"}
-                                </span>
-                              </td>
                               <td className="px-3 py-3 text-orange-500 font-bold">
                                 {(a.dispatchedSmsCount || 0).toLocaleString()}
                               </td>
                               <td className="px-3 py-3 text-blue-500 font-bold">
                                 {(a.dispatchedEmailCount || 0).toLocaleString()}
-                              </td>
-                              <td className="px-3 py-3">
-                                {isActive && (
-                                  <button
-                                    onClick={() =>
-                                      handleResolveAlert(a.alertId)
-                                    }
-                                    className="flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-bold text-white transition-all active:scale-95"
-                                    style={{ backgroundColor: "#10b981" }}
-                                    onMouseEnter={(e) =>
-                                      (e.currentTarget.style.backgroundColor =
-                                        "#059669")
-                                    }
-                                    onMouseLeave={(e) =>
-                                      (e.currentTarget.style.backgroundColor =
-                                        "#10b981")
-                                    }
-                                  >
-                                    <FiCheck size={10} /> Resolve
-                                  </button>
-                                )}
                               </td>
                             </tr>
                           );
