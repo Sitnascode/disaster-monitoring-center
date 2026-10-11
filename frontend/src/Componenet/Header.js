@@ -15,8 +15,6 @@ import {
   FiBookOpen,
 } from "react-icons/fi";
 
-import { WARNING_COUNT, fetchLiveMultiHazardWarningStats } from "../hazardData";
-
 const logo = "/ggd_logo.png";
 
 const hazards = [
@@ -79,49 +77,7 @@ export default function Header() {
 
   // Tablet = desktop nav visible but not enough room for full title (769–900px)
   const isTablet = windowWidth >= 769 && windowWidth <= 900;
-  const headerTitle = isTablet ? "DMC" : "Disaster Monitoring Center";
-
-  /* Real-time live multi-hazard warning count synchronized across site */
-  const [warningCount, setWarningCount] = useState(() => {
-    try {
-      const cached = localStorage.getItem("ew_live_warning_count");
-      if (cached !== null && !isNaN(parseInt(cached, 10))) {
-        return parseInt(cached, 10);
-      }
-    } catch {}
-    return WARNING_COUNT;
-  });
-
-  useEffect(() => {
-    let isMounted = true;
-
-    // Listen to real-time updates dispatched from the Early Warning page
-    const handleEwUpdate = (e) => {
-      if (typeof e.detail === "number" && isMounted) {
-        setWarningCount(e.detail);
-      }
-    };
-    window.addEventListener("ew_warning_count_updated", handleEwUpdate);
-
-    async function fetchRealWarningCount() {
-      try {
-        const count = await fetchLiveMultiHazardWarningStats();
-        if (isMounted) {
-          setWarningCount(count);
-        }
-      } catch {
-        if (isMounted) setWarningCount(WARNING_COUNT);
-      }
-    }
-
-    fetchRealWarningCount();
-    const interval = setInterval(fetchRealWarningCount, 60000); // refresh every 1 min
-    return () => {
-      isMounted = false;
-      window.removeEventListener("ew_warning_count_updated", handleEwUpdate);
-      clearInterval(interval);
-    };
-  }, []);
+  const headerTitle = isTablet ? "GGIMS" : "Geodesy & Geodynamics Information Management System";
 
   useEffect(() => {
     const update = () => {
@@ -253,22 +209,30 @@ export default function Header() {
                 : "0 0 0 1.5px rgba(31,79,216,0.35), 0 4px 24px rgba(31,79,216,0.08)",
           }}
         >
-          {/* Logo */}
+          {/* Logo & Two-Line Compact Title */}
           <button
             onClick={() => navigate("/")}
-            className="flex items-center gap-2 sm:gap-2.5 min-w-0 bg-transparent border-none cursor-pointer p-0 group"
+            className="flex items-center gap-2.5 sm:gap-3 min-w-0 bg-transparent border-none cursor-pointer p-0 group text-left flex-shrink-0"
           >
             <img
               src={logo}
               alt="Logo"
-              className="w-7 h-7 xl:w-9 xl:h-9 rounded-xl flex-shrink-0 group-hover:scale-105 transition-transform duration-150"
+              className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex-shrink-0 group-hover:scale-105 transition-transform duration-150"
             />
-            <span
-              className="header-title font-extrabold tracking-tight whitespace-nowrap truncate min-w-0 text-xs sm:text-sm md:text-base"
-              style={{ color: forceDark ? "#60a5fa" : "#1f4fd8" }}
-            >
-              {headerTitle}
-            </span>
+            <div className="flex flex-col text-left leading-tight min-w-0">
+              <span
+                className="font-extrabold tracking-tight text-sm sm:text-[15px] md:text-[16px] lg:text-[17px] whitespace-nowrap"
+                style={{ color: forceDark ? "#60a5fa" : "#1f4fd8" }}
+              >
+                Geodesy &amp; Geodynamics
+              </span>
+              <span
+                className="font-semibold tracking-tight text-[11px] sm:text-xs md:text-[13px] whitespace-nowrap opacity-90"
+                style={{ color: forceDark ? "#cbd5e1" : "#475569" }}
+              >
+                Information Management System
+              </span>
+            </div>
           </button>
 
           {/* Desktop nav pill-within-pill */}
@@ -293,35 +257,6 @@ export default function Header() {
                   className="relative"
                   style={{ position: "relative" }}
                 >
-                  {/* Warning badge — top-right of the button, absolutely positioned */}
-                  {item.path === "/early-warning" && warningCount > 0 && (
-                    <span
-                      style={{
-                        position: "absolute",
-                        top: "-5px",
-                        right: "-5px",
-                        zIndex: 10,
-                        display: "inline-flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        minWidth: "17px",
-                        height: "17px",
-                        padding: "0 4px",
-                        borderRadius: "999px",
-                        background: "#ef4444",
-                        color: "#ffffff",
-                        fontSize: "10px",
-                        fontWeight: 800,
-                        lineHeight: 1,
-                        letterSpacing: 0,
-                        pointerEvents: "none",
-                        boxShadow: "0 0 0 2px rgba(239,68,68,0.30)",
-                        animation: "navBadgePulse 2s ease-in-out infinite",
-                      }}
-                    >
-                      {warningCount}
-                    </span>
-                  )}
                   <button
                     onClick={() => handleNav(item)}
                     className={[
@@ -471,33 +406,6 @@ export default function Header() {
             const Icon = item.icon;
             return (
               <div key={item.label} style={{ position: "relative" }}>
-                {/* Warning badge — mobile, top-right of button */}
-                {item.path === "/early-warning" && warningCount > 0 && (
-                  <span
-                    style={{
-                      position: "absolute",
-                      top: "6px",
-                      right: "12px",
-                      zIndex: 10,
-                      display: "inline-flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      minWidth: "19px",
-                      height: "19px",
-                      padding: "0 5px",
-                      borderRadius: "999px",
-                      background: "#ef4444",
-                      color: "#ffffff",
-                      fontSize: "11px",
-                      fontWeight: 800,
-                      lineHeight: 1,
-                      pointerEvents: "none",
-                      boxShadow: "0 0 0 2px rgba(239,68,68,0.25)",
-                    }}
-                  >
-                    {warningCount}
-                  </span>
-                )}
                 <button
                   onClick={() => handleNav(item)}
                   className={[

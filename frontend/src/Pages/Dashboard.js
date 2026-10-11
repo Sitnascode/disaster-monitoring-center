@@ -1624,7 +1624,7 @@ function FilePreview({ file, onRemove, accentColor = "#3b82f6" }) {
   );
 }
 // ── Research Upload Panel ─────────────────────────────────────────────────
-function ResearchPanel({ currentUser, onGoBack }) {
+function ResearchPanel({ currentUser, onGoBack, onOpenPublication }) {
   const { theme } = useTheme();
   const isDark = theme === "dark";
   const navigate = useNavigate();
@@ -1882,11 +1882,21 @@ function ResearchPanel({ currentUser, onGoBack }) {
               </div>
               {/* Back button — top-aligned with circle row */}
               {onGoBack && (
-                <div className="mt-0.5">
+                <div className="mt-0.5" style={{ display: "flex", gap: "8px" }}>
                   <SwitchPillBtn
                     onClick={onGoBack}
                     label="Local Data"
                     icon={FiGlobe}
+                    isDark={isDark}
+                  />
+                </div>
+              )}
+              {onOpenPublication && (
+                <div className="mt-0.5">
+                  <SwitchPillBtn
+                    onClick={onOpenPublication}
+                    label="Publication"
+                    icon={FiFileText}
                     isDark={isDark}
                   />
                 </div>
@@ -2221,8 +2231,326 @@ function SwitchPillBtn({ onClick, label, icon: Icon, isDark }) {
   );
 }
 
+// ── Publication Submit Panel ──────────────────────────────────────────────
+function PublicationPanel({ currentUser, onGoBack, onOpenResearch }) {
+  const { theme } = useTheme();
+  const isDark = theme === "dark";
+  const [form, setForm] = useState({
+    title: "",
+    authors: "",
+    journal: "",
+    year: new Date().getFullYear().toString(),
+    doi: "",
+    pubType: "Journal Article",
+  });
+  const [loading, setLoading] = useState(false);
+  const [feedback, setFeedback] = useState(null);
+
+  const set = (k, v) => setForm((f) => ({ ...f, [k]: v }));
+
+  const bg = isDark ? "#111827" : "#ffffff";
+  const border = isDark ? "1px solid #374151" : "1px solid #e5e7eb";
+  const textPrimary = isDark ? "#f9fafb" : "#111827";
+  const textMuted = isDark ? "#9ca3af" : "#6b7280";
+  const inputBg = isDark ? "#1f2937" : "#ffffff";
+  const inputBorder = isDark ? "1px solid #374151" : "1px solid #d1d5db";
+  const inputStyle = {
+    width: "100%",
+    boxSizing: "border-box",
+    padding: "10px 14px",
+    borderRadius: "12px",
+    border: inputBorder,
+    background: inputBg,
+    color: textPrimary,
+    fontSize: "14px",
+    outline: "none",
+    fontFamily: "'Segoe UI', Arial, sans-serif",
+  };
+  const labelStyle = {
+    display: "block",
+    marginBottom: "6px",
+    fontSize: "11px",
+    fontWeight: 700,
+    letterSpacing: "0.07em",
+    textTransform: "uppercase",
+    color: textMuted,
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!form.title.trim() || !form.authors.trim() || !form.journal.trim()) {
+      setFeedback({
+        type: "error",
+        msg: "Title, authors and journal are required.",
+      });
+      return;
+    }
+    setLoading(true);
+    setFeedback(null);
+    try {
+      // Encode publication metadata into the existing Upload fields:
+      // title = "Publication: <paper title>"
+      // description = "Authors: <authors> | Journal: <journal> | Year: <year> | Type: <type>"
+      // uploadType = "link", content = doi url
+      // fileName = stub text file
+      const pubTitle = `Publication: ${form.title.trim()}`;
+      const description = `Authors: ${form.authors.trim()} | Journal: ${form.journal.trim()} | Year: ${form.year} | Type: ${form.pubType}`;
+      const content = form.doi.trim() || "#";
+      const blob = new Blob([content], { type: "text/plain" });
+      const pseudoFile = new File([blob], "publication-link.txt", {
+        type: "text/plain",
+      });
+      const fd = new FormData();
+      fd.append("file", pseudoFile);
+      fd.append("title", pubTitle);
+      fd.append("description", description);
+      fd.append("hazardType", "other");
+      fd.append("uploadType", "link");
+      fd.append("content", content);
+      fd.append("region", "Ethiopia");
+      fd.append(
+        "uploadedBy",
+        currentUser?.fullName || currentUser?.username || "LEO member",
+      );
+      const res = await fetch("/api/uploads", { method: "POST", body: fd });
+      const data = await res.json().catch(() => null);
+      if (!res.ok) throw new Error(data?.error || "Submission failed.");
+      setFeedback({
+        type: "success",
+        msg: "Publication submitted! It will appear on the About page after admin approval.",
+      });
+      setForm({
+        title: "",
+        authors: "",
+        journal: "",
+        year: new Date().getFullYear().toString(),
+        doi: "",
+        pubType: "Journal Article",
+      });
+    } catch (err) {
+      setFeedback({ type: "error", msg: err.message });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div
+      style={{
+        background: bg,
+        border,
+        borderRadius: "18px",
+        overflow: "hidden",
+        boxShadow: "0 4px 24px rgba(0,0,0,0.08)",
+      }}
+    >
+      {/* Header */}
+      <div
+        style={{
+          padding: "18px 24px",
+          borderBottom: isDark ? "1px solid #374151" : "1px solid #e5e7eb",
+          display: "flex",
+          alignItems: "flex-start",
+          justifyContent: "space-between",
+          background: bg,
+        }}
+      >
+        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+          <div
+            style={{
+              width: "44px",
+              height: "44px",
+              borderRadius: "14px",
+              background: "linear-gradient(135deg,#7c3aed,#a855f7)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              flexShrink: 0,
+            }}
+          >
+            <FiBookOpen size={20} style={{ color: "#fff" }} />
+          </div>
+          <div>
+            <div
+              style={{ fontSize: "18px", fontWeight: 800, color: textPrimary }}
+            >
+              Submit Publication
+            </div>
+            <div
+              style={{ fontSize: "12px", color: textMuted, marginTop: "2px" }}
+            >
+              Journal articles, technical reports &amp; conference papers
+            </div>
+          </div>
+        </div>
+        <div
+          style={{
+            display: "flex",
+            gap: "8px",
+            flexShrink: 0,
+            marginLeft: "auto",
+          }}
+        >
+          <SwitchPillBtn
+            onClick={onOpenResearch}
+            label="Upload Research"
+            icon={FiBookOpen}
+            isDark={isDark}
+          />
+        </div>
+      </div>
+
+      {/* Form */}
+      <form
+        onSubmit={handleSubmit}
+        style={{
+          padding: "22px 24px",
+          display: "flex",
+          flexDirection: "column",
+          gap: "16px",
+        }}
+      >
+        {feedback && (
+          <div
+            style={{
+              padding: "10px 14px",
+              borderRadius: "10px",
+              fontSize: "13px",
+              fontWeight: 600,
+              background:
+                feedback.type === "success"
+                  ? isDark
+                    ? "rgba(16,185,129,0.12)"
+                    : "#d1fae5"
+                  : isDark
+                    ? "rgba(239,68,68,0.12)"
+                    : "#fee2e2",
+              color: feedback.type === "success" ? "#059669" : "#dc2626",
+              border: `1px solid ${feedback.type === "success" ? "#6ee7b7" : "#fca5a5"}`,
+            }}
+          >
+            {feedback.msg}
+          </div>
+        )}
+
+        {/* Title */}
+        <div>
+          <label style={labelStyle}>Paper Title *</label>
+          <input
+            style={inputStyle}
+            value={form.title}
+            onChange={(e) => set("title", e.target.value)}
+            placeholder="e.g. InSAR-based Ground Deformation Monitoring of the Main Ethiopian Rift"
+          />
+        </div>
+
+        {/* Authors */}
+        <div>
+          <label style={labelStyle}>Authors *</label>
+          <input
+            style={inputStyle}
+            value={form.authors}
+            onChange={(e) => set("authors", e.target.value)}
+            placeholder="e.g. Geodesy & Geodynamics Dept., SSGI"
+          />
+        </div>
+
+        {/* Journal + Year row */}
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "1fr auto",
+            gap: "14px",
+          }}
+        >
+          <div>
+            <label style={labelStyle}>Journal / Conference *</label>
+            <input
+              style={inputStyle}
+              value={form.journal}
+              onChange={(e) => set("journal", e.target.value)}
+              placeholder="e.g. Remote Sensing Applications"
+            />
+          </div>
+          <div style={{ minWidth: "100px" }}>
+            <label style={labelStyle}>Year</label>
+            <input
+              style={inputStyle}
+              type="number"
+              min="1990"
+              max="2030"
+              value={form.year}
+              onChange={(e) => set("year", e.target.value)}
+            />
+          </div>
+        </div>
+
+        {/* Type */}
+        <div>
+          <label style={labelStyle}>Publication Type</label>
+          <select
+            style={inputStyle}
+            value={form.pubType}
+            onChange={(e) => set("pubType", e.target.value)}
+          >
+            {[
+              "Journal Article",
+              "Technical Report",
+              "Conference Paper",
+              "Book Chapter",
+              "Thesis",
+            ].map((t) => (
+              <option key={t} value={t}>
+                {t}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* DOI */}
+        <div>
+          <label style={labelStyle}>DOI / Link (optional)</label>
+          <input
+            style={inputStyle}
+            value={form.doi}
+            onChange={(e) => set("doi", e.target.value)}
+            placeholder="https://doi.org/10.xxxx/... or publication URL"
+          />
+        </div>
+
+        {/* Submit */}
+        <button
+          type="submit"
+          disabled={loading}
+          style={{
+            marginTop: "4px",
+            padding: "12px",
+            borderRadius: "12px",
+            border: "none",
+            background: loading
+              ? "#6b7280"
+              : "linear-gradient(135deg,#7c3aed,#a855f7)",
+            color: "#fff",
+            fontSize: "14px",
+            fontWeight: 700,
+            cursor: loading ? "not-allowed" : "pointer",
+            boxShadow: loading ? "none" : "0 4px 16px rgba(124,58,237,0.40)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: "8px",
+          }}
+        >
+          <FiBookOpen size={16} />
+          {loading ? "Submitting…" : "Submit Publication"}
+        </button>
+      </form>
+    </div>
+  );
+}
+
 // ── Disaster Data Upload Panel ────────────────────────────────────────────
-function DisasterPanel({ currentUser, onOpenResearch }) {
+function DisasterPanel({ currentUser, onOpenResearch, onOpenPublication }) {
   const { theme } = useTheme();
   const isDark = theme === "dark";
   const navigate = useNavigate();
@@ -2390,11 +2718,20 @@ function DisasterPanel({ currentUser, onOpenResearch }) {
             </div>
 
             {/* Research upload pill button */}
-            <div className="flex-shrink-0 ml-auto">
+            <div
+              className="flex-shrink-0 ml-auto"
+              style={{ display: "flex", gap: "8px" }}
+            >
               <SwitchPillBtn
                 onClick={onOpenResearch}
                 label="Upload Research"
                 icon={FiBookOpen}
+                isDark={isDark}
+              />
+              <SwitchPillBtn
+                onClick={onOpenPublication}
+                label="Publication"
+                icon={FiFileText}
                 isDark={isDark}
               />
             </div>
@@ -2937,7 +3274,7 @@ function DisasterSubmissions({ history: initialHistory, onRefresh }) {
 function Dashboard() {
   const [currentUser, setCurrentUser] = useState(null);
   const [notification, setNotification] = useState(null);
-  const [showResearch, setShowResearch] = useState(false);
+  const [activePanel, setActivePanel] = useState("local"); // "local" | "research" | "publication"
   const [dashStats, setDashStats] = useState({
     total: 0,
     research: 0,
@@ -2957,6 +3294,23 @@ function Dashboard() {
     }
     const user = JSON.parse(userStr);
     setCurrentUser(user);
+
+    // If user is a Student, default to Research panel (no local data access)
+    const studentDesignations = [
+      "student",
+      "Student",
+      "Student Researcher",
+      "student researcher",
+      "Intern",
+      "intern",
+    ];
+    if (
+      studentDesignations.some((d) =>
+        (user.designation || "").toLowerCase().includes(d.toLowerCase()),
+      )
+    ) {
+      setActivePanel("research");
+    }
 
     // Fetch submission statistics for this user
     fetch("/api/uploads")
@@ -3238,17 +3592,146 @@ function Dashboard() {
           ))}
         </div>
 
-        {showResearch ? (
-          <ResearchPanel
-            currentUser={currentUser}
-            onGoBack={() => setShowResearch(false)}
-          />
-        ) : (
-          <DisasterPanel
-            currentUser={currentUser}
-            onOpenResearch={() => setShowResearch(true)}
-          />
-        )}
+        {(() => {
+          const studentDesignations = [
+            "student",
+            "Student Researcher",
+            "Intern",
+          ];
+          const isStudent = studentDesignations.some((d) =>
+            (currentUser?.designation || "")
+              .toLowerCase()
+              .includes(d.toLowerCase()),
+          );
+
+          if (activePanel === "research") {
+            return (
+              <ResearchPanel
+                currentUser={currentUser}
+                onGoBack={isStudent ? null : () => setActivePanel("local")}
+                onOpenPublication={() => setActivePanel("publication")}
+              />
+            );
+          }
+          if (activePanel === "publication") {
+            return (
+              <PublicationPanel
+                currentUser={currentUser}
+                onGoBack={isStudent ? null : () => setActivePanel("local")}
+                onOpenResearch={() => setActivePanel("research")}
+              />
+            );
+          }
+          // "local" panel
+          if (isStudent) {
+            return (
+              <div
+                style={{
+                  background: "var(--bg-card)",
+                  border: "1px solid var(--border-light)",
+                  borderRadius: "18px",
+                  padding: "40px 24px",
+                  textAlign: "center",
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  gap: "14px",
+                }}
+              >
+                <div
+                  style={{
+                    width: "56px",
+                    height: "56px",
+                    borderRadius: "16px",
+                    background: "rgba(245,158,11,0.10)",
+                    border: "1px solid rgba(245,158,11,0.25)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  <FiAlertCircle size={24} style={{ color: "#f59e0b" }} />
+                </div>
+                <div>
+                  <p
+                    style={{
+                      fontWeight: 800,
+                      fontSize: "16px",
+                      color: "var(--text-primary)",
+                      margin: "0 0 6px",
+                    }}
+                  >
+                    Local Data Submission Not Available
+                  </p>
+                  <p
+                    style={{
+                      fontSize: "13px",
+                      color: "var(--text-muted)",
+                      margin: 0,
+                      maxWidth: "380px",
+                    }}
+                  >
+                    Local disaster data submission is restricted to field
+                    officers and researchers. You can upload research datasets
+                    or submit publications using the buttons below.
+                  </p>
+                </div>
+                <div
+                  style={{
+                    display: "flex",
+                    gap: "10px",
+                    flexWrap: "wrap",
+                    justifyContent: "center",
+                  }}
+                >
+                  <button
+                    onClick={() => setActivePanel("research")}
+                    style={{
+                      padding: "10px 22px",
+                      borderRadius: "10px",
+                      border: "none",
+                      background: "linear-gradient(135deg,#1d4ed8,#4f46e5)",
+                      color: "#fff",
+                      fontSize: "13px",
+                      fontWeight: 700,
+                      cursor: "pointer",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "6px",
+                    }}
+                  >
+                    <FiBookOpen size={14} /> Upload Research
+                  </button>
+                  <button
+                    onClick={() => setActivePanel("publication")}
+                    style={{
+                      padding: "10px 22px",
+                      borderRadius: "10px",
+                      border: "1px solid var(--border-light)",
+                      background: "var(--bg-card)",
+                      color: "var(--text-primary)",
+                      fontSize: "13px",
+                      fontWeight: 700,
+                      cursor: "pointer",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "6px",
+                    }}
+                  >
+                    <FiFileText size={14} /> Submit Publication
+                  </button>
+                </div>
+              </div>
+            );
+          }
+          return (
+            <DisasterPanel
+              currentUser={currentUser}
+              onOpenResearch={() => setActivePanel("research")}
+              onOpenPublication={() => setActivePanel("publication")}
+            />
+          );
+        })()}
       </div>
     </div>
   );

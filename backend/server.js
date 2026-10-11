@@ -1688,7 +1688,7 @@ function buildVerifyEmailHtml(name, url) {
               <h1 style="color:#f0d060;margin:0;font-size:24px;font-weight:800;
                          letter-spacing:0.5px;">Geodesy &amp; Geodynamics</h1>
               <p style="color:rgba(255,255,255,0.80);margin:6px 0 0;font-size:13px;">
-                Ethiopia Disaster Monitoring Dashboard
+                Information Management System (GGIMS) — SSGI
               </p>
             </td>
           </tr>
@@ -2952,7 +2952,7 @@ async function sendDailyDigest() {
 
       <div style="padding:22px 28px;">
         <p style="color:#334155;font-size:13.5px;margin:0 0 16px 0;line-height:1.5;">
-          Here is your automated daily summary of real-world natural hazard occurrences and active events detected across Ethiopia:
+          Here is your automated daily summary of near real-world natural hazard occurrences and active events detected across Ethiopia:
         </p>
 
         ${sectionsHtml}
@@ -2970,7 +2970,7 @@ async function sendDailyDigest() {
     const footer = `
       <div style="max-width:580px;margin:10px auto 0 auto;text-align:center;padding:10px 20px;">
         <p style="font-size:11px;color:#94a3b8;margin:0;">
-          Space Science and Geospatial Institute (SSGI) &bull; Disaster Monitoring Center<br/>
+          Space Science and Geospatial Institute (SSGI) &bull; Geodesy and Geodynamics Information Management System (GGIMS)<br/>
           You received this email because you subscribed to daily hazard updates in the portal footer.<br/>
           <a href="${APP_URL}/api/unsubscribe?token=${sub.unsubscribeToken}" style="color:#64748b;text-decoration:underline;">Unsubscribe from daily alerts</a>
         </p>
@@ -3019,7 +3019,9 @@ app.post("/api/subscriptions/trigger-daily-digest", async (req, res) => {
 // ══════════════════════════════════════════════════════════════════════════════
 
 async function checkAndDispatchNewHazardAlerts() {
-  console.log("[alertMonitor] Scanning real-time hazard feeds for NEW events in Ethiopia…");
+  console.log(
+    "[alertMonitor] Scanning real-time hazard feeds for NEW events in Ethiopia…",
+  );
   let newEventsDispatched = 0;
 
   // 1. USGS Live Earthquake Feed (M >= 3.5 in Ethiopia / East African Rift)
@@ -3044,15 +3046,22 @@ async function checkAndDispatchNewHazardAlerts() {
       });
 
       if (!existing && mag >= 3.5) {
-        console.log(`[alertMonitor] 🚨 NEW Earthquake detected: M${mag} near ${place} (${fingerprint})`);
-        const severity = mag >= 5.0 ? "Emergency" : mag >= 4.2 ? "Warning" : "Advisory";
+        console.log(
+          `[alertMonitor] 🚨 NEW Earthquake detected: M${mag} near ${place} (${fingerprint})`,
+        );
+        const severity =
+          mag >= 5.0 ? "Emergency" : mag >= 4.2 ? "Warning" : "Advisory";
 
         await dispatchAlertToAllRecipients({
           hazard: "earthquake",
           severity,
           title: `Seismic ${severity}: M${mag.toFixed(1)} Earthquake Near ${place}`,
           location: place,
-          region: place.includes("Afar") ? "Afar" : place.includes("Oromia") ? "Oromia" : "Ethiopia Rift Zone",
+          region: place.includes("Afar")
+            ? "Afar"
+            : place.includes("Oromia")
+              ? "Oromia"
+              : "Ethiopia Rift Zone",
           description: `USGS Seismographic Network detected an M${mag.toFixed(1)} earthquake at a depth of ${depth.toFixed(1)} km. Registered users and emergency personnel are notified.`,
           telemetry: {
             magnitude: `M${mag.toFixed(1)}`,
@@ -3066,7 +3075,7 @@ async function checkAndDispatchNewHazardAlerts() {
             "Stay clear of unreinforced masonry walls, steep escarpments, and damaged powerlines.",
             "Check for local structural damage and follow municipal DRMC guidance.",
           ],
-          dispatchedBy: "Automated USGS Real-Time Seismic Detector",
+          dispatchedBy: "Automated USGS Near-Real-Time Seismic Detector",
           eventFingerprint: fingerprint,
         });
 
@@ -3080,20 +3089,28 @@ async function checkAndDispatchNewHazardAlerts() {
   // 2. NASA FIRMS Live Wildfire Feed (Extreme FRP / Large Hotspots)
   try {
     const today = new Date().toISOString().slice(0, 10);
-    const FIRMS_KEY = process.env.REACT_APP_FIRMS_MAP_KEY || "a0a4c2a5d204ecfcad2e0867eaee05c4";
+    const FIRMS_KEY =
+      process.env.REACT_APP_FIRMS_MAP_KEY || "a0a4c2a5d204ecfcad2e0867eaee05c4";
     const firmsUrl = `https://firms.modaps.eosdis.nasa.gov/api/country/csv/${FIRMS_KEY}/VIIRS_SNPP_NRT/ETH/1/${today}`;
     const csvData = await new Promise((resolve, reject) => {
       https
-        .get(firmsUrl, { headers: { "User-Agent": "GeodDashboard/1.0" } }, (res) => {
-          let body = "";
-          res.on("data", (c) => (body += c));
-          res.on("end", () => resolve(body));
-        })
+        .get(
+          firmsUrl,
+          { headers: { "User-Agent": "GeodDashboard/1.0" } },
+          (res) => {
+            let body = "";
+            res.on("data", (c) => (body += c));
+            res.on("end", () => resolve(body));
+          },
+        )
         .on("error", reject);
     }).catch(() => null);
 
     if (csvData) {
-      const rows = csvData.trim().split("\n").filter((l) => l && !l.startsWith("latitude"));
+      const rows = csvData
+        .trim()
+        .split("\n")
+        .filter((l) => l && !l.startsWith("latitude"));
       for (const row of rows) {
         const parts = row.split(",");
         const lat = parseFloat(parts[0]);
@@ -3109,7 +3126,9 @@ async function checkAndDispatchNewHazardAlerts() {
           });
 
           if (!existing) {
-            console.log(`[alertMonitor] 🚨 NEW High-Intensity Wildfire detected: FRP ${frp} MW at [${lat}, ${lon}]`);
+            console.log(
+              `[alertMonitor] 🚨 NEW High-Intensity Wildfire detected: FRP ${frp} MW at [${lat}, ${lon}]`,
+            );
             const locName = `Lat ${lat.toFixed(2)}°N, Lon ${lon.toFixed(2)}°E (Ethiopia)`;
 
             await dispatchAlertToAllRecipients({
@@ -3117,7 +3136,12 @@ async function checkAndDispatchNewHazardAlerts() {
               severity: frp >= 120 ? "Emergency" : "Warning",
               title: `Wildfire Warning: High-Intensity Thermal Anomaly (${frp.toFixed(0)} MW)`,
               location: locName,
-              region: lat < 9 ? "Oromia / Somali Lowlands" : lat > 11 ? "Tigray / Amhara" : "Ethiopia",
+              region:
+                lat < 9
+                  ? "Oromia / Somali Lowlands"
+                  : lat > 11
+                    ? "Tigray / Amhara"
+                    : "Ethiopia",
               description: `NASA VIIRS satellite detected high-intensity thermal anomaly with Fire Radiative Power of ${frp.toFixed(1)} MW (${conf} confidence). Immediate containment monitoring advised.`,
               telemetry: {
                 frp: `${frp.toFixed(1)} MW`,
@@ -3145,7 +3169,8 @@ async function checkAndDispatchNewHazardAlerts() {
 
   // 3. NASA Global Landslide Feed
   try {
-    const lsUrl = "https://data.nasa.gov/resource/tfkf-kniw.json?$limit=50&$order=event_date DESC";
+    const lsUrl =
+      "https://data.nasa.gov/resource/tfkf-kniw.json?$limit=50&$order=event_date DESC";
     const lsData = await fetchWithTimeout(lsUrl, 8000).catch(() => null);
     if (Array.isArray(lsData)) {
       const cutoff = new Date(Date.now() - 48 * 60 * 60 * 1000);
@@ -3155,7 +3180,10 @@ async function checkAndDispatchNewHazardAlerts() {
         const lon = parseFloat(e.longitude);
         return (
           new Date(e.event_date) >= cutoff &&
-          lat >= 3 && lat <= 15 && lon >= 33 && lon <= 48
+          lat >= 3 &&
+          lat <= 15 &&
+          lon >= 33 &&
+          lon <= 48
         );
       });
 
@@ -3166,8 +3194,12 @@ async function checkAndDispatchNewHazardAlerts() {
         });
 
         if (!existing) {
-          console.log(`[alertMonitor] 🚨 NEW Landslide event detected in ${ls.location_description || "Ethiopia"}`);
-          const locName = ls.location_description || `Lat ${ls.latitude}, Lon ${ls.longitude}`;
+          console.log(
+            `[alertMonitor] 🚨 NEW Landslide event detected in ${ls.location_description || "Ethiopia"}`,
+          );
+          const locName =
+            ls.location_description ||
+            `Lat ${ls.latitude}, Lon ${ls.longitude}`;
 
           await dispatchAlertToAllRecipients({
             hazard: "landslide",
@@ -3178,7 +3210,8 @@ async function checkAndDispatchNewHazardAlerts() {
             description: `Rainfall-induced landslide reported. Slope instability and debris flow risk active in saprolite escarpment zones.`,
             telemetry: {
               source: "NASA Global Landslide Catalog",
-              trigger: ls.landslide_trigger || "Precipitation / Soil Saturation",
+              trigger:
+                ls.landslide_trigger || "Precipitation / Soil Saturation",
               eventDate: ls.event_date,
             },
             actions: [
@@ -3199,9 +3232,13 @@ async function checkAndDispatchNewHazardAlerts() {
   }
 
   if (newEventsDispatched === 0) {
-    console.log("[alertMonitor] Scan complete: No new hazard events detected. (Zero duplicate messages sent).");
+    console.log(
+      "[alertMonitor] Scan complete: No new hazard events detected. (Zero duplicate messages sent).",
+    );
   } else {
-    console.log(`[alertMonitor] Scan complete: Dispatched ${newEventsDispatched} NEW emergency alert(s) to registered users and subscribers.`);
+    console.log(
+      `[alertMonitor] Scan complete: Dispatched ${newEventsDispatched} NEW emergency alert(s) to registered users and subscribers.`,
+    );
   }
 }
 
@@ -3219,7 +3256,9 @@ setTimeout(() => {
   );
 }, 10000);
 
-console.log("[server] Real-Time Multi-Hazard Alert Monitor active (scans feeds every 5m — alerts sent ONLY when new hazards occur).");
+console.log(
+  "[server] Real-Time Multi-Hazard Alert Monitor active (scans feeds every 5m — alerts sent ONLY when new hazards occur).",
+);
 
 // ══════════════════════════════════════════════════════════════════════════════
 // ── EARLY WARNING MULTI-CHANNEL DISPATCH & AUDIT TRAIL API ──────────────────
@@ -3228,14 +3267,28 @@ console.log("[server] Real-Time Multi-Hazard Alert Monitor active (scans feeds e
 // ── GET /api/alerts/summary — Live active alerts & system early warning stats
 app.get("/api/alerts/summary", async (req, res) => {
   try {
-    const activeAlerts = await AlertHistory.find({ status: "Active" }).sort({ issuedAt: -1 }).lean();
-    const resolvedCount = await AlertHistory.countDocuments({ status: "Resolved" });
-    const userCount = await User.countDocuments({ status: { $ne: "rejected" } });
-    const subscriberCount = await AlertSubscription.countDocuments({ isActive: true });
+    const activeAlerts = await AlertHistory.find({ status: "Active" })
+      .sort({ issuedAt: -1 })
+      .lean();
+    const resolvedCount = await AlertHistory.countDocuments({
+      status: "Resolved",
+    });
+    const userCount = await User.countDocuments({
+      status: { $ne: "rejected" },
+    });
+    const subscriberCount = await AlertSubscription.countDocuments({
+      isActive: true,
+    });
 
-    const warningsCount = activeAlerts.filter(a => a.severity === "Warning" || a.severity === "Emergency").length;
-    const watchesCount = activeAlerts.filter(a => a.severity === "Watch").length;
-    const advisoriesCount = activeAlerts.filter(a => a.severity === "Advisory").length;
+    const warningsCount = activeAlerts.filter(
+      (a) => a.severity === "Warning" || a.severity === "Emergency",
+    ).length;
+    const watchesCount = activeAlerts.filter(
+      (a) => a.severity === "Watch",
+    ).length;
+    const advisoriesCount = activeAlerts.filter(
+      (a) => a.severity === "Advisory",
+    ).length;
 
     res.json({
       success: true,
@@ -3250,7 +3303,12 @@ app.get("/api/alerts/summary", async (req, res) => {
     });
   } catch (err) {
     console.error("[alerts] Summary error:", err.message);
-    res.status(500).json({ error: "Failed to generate alert summary.", details: err.message });
+    res
+      .status(500)
+      .json({
+        error: "Failed to generate alert summary.",
+        details: err.message,
+      });
   }
 });
 
@@ -3259,11 +3317,16 @@ app.post("/api/alerts/test-dispatch", async (req, res) => {
   try {
     const { phone, email, name = "Tester", hazard = "earthquake" } = req.body;
     if (!phone && !email) {
-      return res.status(400).json({ error: "Please provide a phone number for SMS or an email address to test." });
+      return res
+        .status(400)
+        .json({
+          error:
+            "Please provide a phone number for SMS or an email address to test.",
+        });
     }
 
-    const testTitle = `TEST ALERT: Early Warning System Verification (${hazard.toUpperCase()})`;
-    const testDesc = `This is a test disaster early warning dispatch from the EDRMC / SSGI Disaster Monitoring Center. If you received this, SMS and Email integrations are working properly!`;
+    const testTitle = `TEST ALERT: Disaster Alert System Verification (${hazard.toUpperCase()})`;
+    const testDesc = `This is a test disaster alert dispatch from the SSGI Geodesy and Geodynamics Information Management System (GGIMS). If you received this, SMS and Email integrations are working properly!`;
 
     const result = await dispatchAlertToAllRecipients({
       hazard,
@@ -3297,7 +3360,9 @@ app.post("/api/alerts/test-dispatch", async (req, res) => {
     });
   } catch (err) {
     console.error("[alerts] Test dispatch error:", err.message);
-    res.status(500).json({ error: "Test dispatch failed.", details: err.message });
+    res
+      .status(500)
+      .json({ error: "Test dispatch failed.", details: err.message });
   }
 });
 
@@ -3409,7 +3474,7 @@ app.post("/api/alerts/dispatch", async (req, res) => {
       targetEmail: targetEmail || email,
       dispatchedBy: req.user
         ? `${req.user.fullName} (${req.user.role})`
-        : "EDRMC / SSGI Early Warning Desk",
+        : "SSGI / EDRMC Disaster Desk",
     });
 
     res.json({
@@ -3502,19 +3567,26 @@ app.post("/api/alerts/subscribe", async (req, res) => {
             from:
               process.env.EMAIL_FROM ||
               process.env.EMAIL_USER ||
-              "earlywarning@ssgi.gov.et",
+              "alerts@ssgi.gov.et",
             to: cleanEmail,
-            subject: `✅ [CONFIRMED] Ethiopia Early Warning Alert Preferences (${minSeverity}+)`,
+            subject: `✅ [CONFIRMED] Ethiopia Disaster Alert Preferences (${minSeverity}+)`,
             html: confHtml,
           });
           emailSent = true;
-          console.log(`[alerts] Subscription confirmation email sent to ${cleanEmail}:`, info?.messageId);
+          console.log(
+            `[alerts] Subscription confirmation email sent to ${cleanEmail}:`,
+            info?.messageId,
+          );
         } catch (mailErr) {
-          console.error(`[alerts] Subscription email failed for ${cleanEmail}:`, mailErr.message);
+          console.error(
+            `[alerts] Subscription email failed for ${cleanEmail}:`,
+            mailErr.message,
+          );
           emailError = mailErr.message;
         }
       } else {
-        emailError = "SMTP Transporter not configured (EMAIL_USER/EMAIL_PASS missing)";
+        emailError =
+          "SMTP Transporter not configured (EMAIL_USER/EMAIL_PASS missing)";
       }
     }
 
@@ -3531,9 +3603,14 @@ app.post("/api/alerts/subscribe", async (req, res) => {
         });
         if (smsGatewaySync.success) {
           smsSent = true;
-          console.log(`[alerts] Contact +${normPhone} registered and welcome SMS dispatched via SMS Ethiopia`);
+          console.log(
+            `[alerts] Contact +${normPhone} registered and welcome SMS dispatched via SMS Ethiopia`,
+          );
         } else {
-          smsError = smsGatewaySync.note || smsGatewaySync.error || "SMS Gateway sync attempted";
+          smsError =
+            smsGatewaySync.note ||
+            smsGatewaySync.error ||
+            "SMS Gateway sync attempted";
         }
       } catch (smsErr) {
         console.warn("[alerts] SMS Gateway register error:", smsErr.message);
@@ -3543,7 +3620,8 @@ app.post("/api/alerts/subscribe", async (req, res) => {
 
     res.json({
       success: true,
-      message: "Notification preferences saved and contact synced to SMS Ethiopia Gateway.",
+      message:
+        "Notification preferences saved and contact synced to SMS Ethiopia Gateway.",
       subscription: sub,
       smsGatewaySync,
       emailSent,
@@ -3620,9 +3698,12 @@ app.patch("/api/alerts/history/:alertId/resolve", async (req, res) => {
 app.get("/api/content", async (_req, res) => {
   try {
     let doc = await SiteContent.findOne({ key: "main_content" });
+    const defaults = SiteContent.getDefaultContent();
     if (!doc) {
-      const defaults = SiteContent.getDefaultContent();
       doc = await SiteContent.create({ key: "main_content", ...defaults });
+    } else if (!doc.hero) {
+      doc.hero = defaults.hero;
+      await doc.save();
     }
     const plain = doc.toObject ? doc.toObject() : doc;
     res.json({ success: true, content: plain, ...plain });

@@ -2,8 +2,21 @@ import React, { useState, useEffect, useRef, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { useTheme } from "../../ThemeContext";
 import {
-  FiArrowRight, FiShield, FiRefreshCw, FiMapPin, FiLayers, FiAlertTriangle,
-  FiBell, FiMail, FiSend, FiClock, FiCheckCircle, FiSearch, FiPhone, FiCheck, FiX,
+  FiArrowRight,
+  FiShield,
+  FiRefreshCw,
+  FiMapPin,
+  FiLayers,
+  FiAlertTriangle,
+  FiBell,
+  FiMail,
+  FiSend,
+  FiClock,
+  FiCheckCircle,
+  FiSearch,
+  FiPhone,
+  FiCheck,
+  FiX,
 } from "react-icons/fi";
 import { useMap } from "react-leaflet";
 import L from "leaflet";
@@ -520,12 +533,6 @@ export function MarkerPopup({ marker, onClose }) {
         <span>
           Coords: {lat?.toFixed(2)}°, {lon?.toFixed(2)}°
         </span>
-        <Link
-          to={`/${type === "earthquake" ? "earthquakes" : type === "volcano" ? "volcano" : type}`}
-          style={{ color: "#0284c7", fontWeight: 700, textDecoration: "none" }}
-        >
-          Details →
-        </Link>
       </div>
     </div>
   );

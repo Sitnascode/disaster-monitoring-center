@@ -1,15 +1,14 @@
-# Disaster Monitoring Center (DMC)
+# Geodesy and Geodynamics Information Management System (GGIMS)
 
-A full-stack web application for real-time natural hazard monitoring across Ethiopia, developed for the **Geodesy & Geodynamics Department, Ethiopian Space Science and Geospatial Institute (SSGI)**.
+A full-stack web application developed for the **Geodesy & Geodynamics Department of the Ethiopian Space Science and Geospatial Institute (SSGI)**.
 
-The platform integrates live satellite and sensor data from multiple international sources to monitor six hazard domains — earthquake, flood, fire, drought, landslide, and volcano — and provides an early warning system, a research data portal, and a member management dashboard.
+The platform provides a centralized digital platform for accessing the department's services, information, and geospatial data products, and the sharing of research and locally collected data across Ethiopia. It integrates near real-time hazard monitoring across six domains — earthquake, flood, fire, drought, landslide, and volcano — and provides early warning capabilities, a research data portal, and an administrative member dashboard.
 
 ---
 
 ## Features
 
 - **Six hazard monitoring pages** — interactive Leaflet maps with live data, regional risk scoring, and analytical sections for each hazard type
-- **Early Warning System** — real-time alert monitoring with severity filtering, regional risk cards, and SMS/email subscription management
 - **Research Portal** — browse, filter, and download approved datasets submitted by department members
 - **LEO Member Dashboard** — authenticated portal for submitting local disaster observations and research uploads, with an admin approval workflow
 - **Admin Panel** — manage user approvals, content, and submissions

@@ -1,6 +1,6 @@
 /**
  * alertService.js — Multi-Channel Early Warning Dispatcher (SMS Ethiopia & Email)
- * 
+ *
  * SMS Gateway: SMS Ethiopia (https://smsethiopia.com)
  * API Key / Token: 9X6CDFFJKDZTDLMACZX77E291OHDCVZWXUDNMRXW
  */
@@ -16,7 +16,9 @@ const nodemailer = require("nodemailer");
 const AlertHistory = require("./models/AlertHistory");
 const AlertSubscription = require("./models/AlertSubscription");
 
-const SMS_ETHIOPIA_API_KEY = process.env.SMS_ETHIOPIA_API_KEY || "9X6CDFFJKDZTDLMACZX77E291OHDCVZWXUDNMRXW";
+const SMS_ETHIOPIA_API_KEY =
+  process.env.SMS_ETHIOPIA_API_KEY ||
+  "9X6CDFFJKDZTDLMACZX77E291OHDCVZWXUDNMRXW";
 
 // Email transporter setup
 function getEmailTransporter() {
@@ -65,10 +67,14 @@ function normalizeEthiopianPhone(phone) {
 async function sendSmsEthiopia({ to, message }) {
   const phone = normalizeEthiopianPhone(to);
   if (!phone) {
-    throw new Error("Invalid phone number format. Provide Ethiopian mobile (09... / 07... / 2519...).");
+    throw new Error(
+      "Invalid phone number format. Provide Ethiopian mobile (09... / 07... / 2519...).",
+    );
   }
 
-  const apiKey = process.env.SMS_ETHIOPIA_API_KEY || "9X6CDFFJKDZTDLMACZX77E291OHDCVZWXUDNMRXW";
+  const apiKey =
+    process.env.SMS_ETHIOPIA_API_KEY ||
+    "9X6CDFFJKDZTDLMACZX77E291OHDCVZWXUDNMRXW";
 
   const payload = JSON.stringify({
     msisdn: phone,
@@ -92,9 +98,9 @@ async function sendSmsEthiopia({ to, message }) {
       headers: {
         "Content-Type": "application/json",
         "Content-Length": Buffer.byteLength(payload),
-        "KEY": apiKey,
-        "key": apiKey,
-        "Authorization": `Bearer ${apiKey}`,
+        KEY: apiKey,
+        key: apiKey,
+        Authorization: `Bearer ${apiKey}`,
       },
       timeout: 12000,
     };
@@ -105,9 +111,23 @@ async function sendSmsEthiopia({ to, message }) {
       res.on("end", () => {
         try {
           const parsed = JSON.parse(body);
-          if (res.statusCode >= 200 && res.statusCode < 300 && !parsed.error && !parsed.error_message) {
-            resolve({ success: true, status: res.statusCode, response: parsed });
-          } else if (parsed.error_message?.includes("DEFAULT_CAMPAIGN_RECIPIENT_NOT_WHITELISTED") || parsed.error_message?.includes("10007")) {
+          if (
+            res.statusCode >= 200 &&
+            res.statusCode < 300 &&
+            !parsed.error &&
+            !parsed.error_message
+          ) {
+            resolve({
+              success: true,
+              status: res.statusCode,
+              response: parsed,
+            });
+          } else if (
+            parsed.error_message?.includes(
+              "DEFAULT_CAMPAIGN_RECIPIENT_NOT_WHITELISTED",
+            ) ||
+            parsed.error_message?.includes("10007")
+          ) {
             resolve({
               success: false,
               status: 400,
@@ -118,14 +138,19 @@ async function sendSmsEthiopia({ to, message }) {
             resolve({
               success: false,
               status: 401,
-              error: "SMS Ethiopia API Token unauthorized or invalid (HTTP 401). Please check SMS_ETHIOPIA_API_KEY in backend/.env.",
+              error:
+                "SMS Ethiopia API Token unauthorized or invalid (HTTP 401). Please check SMS_ETHIOPIA_API_KEY in backend/.env.",
               response: parsed,
             });
           } else {
             resolve({
               success: false,
               status: res.statusCode,
-              error: parsed.error_message || parsed.message || parsed.error || `SMS gateway returned HTTP ${res.statusCode}`,
+              error:
+                parsed.error_message ||
+                parsed.message ||
+                parsed.error ||
+                `SMS gateway returned HTTP ${res.statusCode}`,
               response: parsed,
             });
           }
@@ -145,7 +170,10 @@ async function sendSmsEthiopia({ to, message }) {
     });
 
     req.on("error", (err) => {
-      console.warn("[alertService] SMS Ethiopia connection notice:", err.message);
+      console.warn(
+        "[alertService] SMS Ethiopia connection notice:",
+        err.message,
+      );
       resolve({
         success: false,
         status: 500,
@@ -190,7 +218,7 @@ async function registerContactToSmsEthiopia({
   );
 
   // Welcome / registration confirmation SMS text
-  const regMsg = `[EDRMC / SSGI EARLY WARNING]\nWelcome ${name}! Your phone (+${norm}) is now registered for Ethiopia Disaster Alerts (${regions.join(", ")} | Min: ${minSeverity}). Hotline: 8335.`;
+  const regMsg = `[SSGI DISASTER ALERT]\nWelcome ${name}! Your phone (+${norm}) is now registered for Ethiopia Disaster Alerts (${regions.join(", ")} | Min: ${minSeverity}). Hotline: 8335.`;
 
   // Dispatch live registration verification ping to SMS Ethiopia
   const res = await sendSmsEthiopia({
@@ -212,19 +240,39 @@ async function registerContactToSmsEthiopia({
 }
 
 /**
- * Builds professional Ethiopian Disaster Early Warning SMS template
+ * Builds professional Ethiopian Disaster Alert SMS template
  */
-function formatProfessionalSms({ hazard, severity, location, issuedStr, actionSummary }) {
+function formatProfessionalSms({
+  hazard,
+  severity,
+  location,
+  issuedStr,
+  actionSummary,
+}) {
   const sevUpper = (severity || "WARNING").toUpperCase();
   const hazUpper = (hazard || "HAZARD").toUpperCase();
-  const time = issuedStr || new Date().toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" });
-  return `[EDRMC / SSGI EARLY WARNING]\nLEVEL: ${sevUpper}\nHAZARD: ${hazUpper}\nLOCATION: ${location}\nISSUED: ${time} EAT\nADVISORY: ${actionSummary || "Take safety precautions and follow local DRMC advisories."}\nEMERGENCY HOTLINE: 8335\nPORTAL: https://disaster.ssgi.gov.et`;
+  const time =
+    issuedStr ||
+    new Date().toLocaleTimeString("en-US", {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  return `[SSGI DISASTER ALERT]\nLEVEL: ${sevUpper}\nHAZARD: ${hazUpper}\nLOCATION: ${location}\nISSUED: ${time} EAT\nADVISORY: ${actionSummary || "Take safety precautions and follow local DRMC advisories."}\nEMERGENCY HOTLINE: 8335\nPORTAL: https://disaster.ssgi.gov.et`;
 }
 
 /**
- * Builds professional Ethiopian Disaster Early Warning HTML Email template
+ * Builds professional Ethiopian Disaster Alert HTML Email template
  */
-function buildProfessionalEmailHtml({ alertId, hazard, severity, location, issuedStr, details, telemetry, actions }) {
+function buildProfessionalEmailHtml({
+  alertId,
+  hazard,
+  severity,
+  location,
+  issuedStr,
+  details,
+  telemetry,
+  actions,
+}) {
   const sevColors = {
     Emergency: { bg: "#ef4444", text: "#ffffff", border: "#b91c1c" },
     Warning: { bg: "#f97316", text: "#ffffff", border: "#c2410c" },
@@ -233,7 +281,12 @@ function buildProfessionalEmailHtml({ alertId, hazard, severity, location, issue
   };
 
   const theme = sevColors[severity] || sevColors.Warning;
-  const time = issuedStr || new Date().toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short" });
+  const time =
+    issuedStr ||
+    new Date().toLocaleString("en-US", {
+      dateStyle: "medium",
+      timeStyle: "short",
+    });
 
   return `
 <!DOCTYPE html>
@@ -241,7 +294,7 @@ function buildProfessionalEmailHtml({ alertId, hazard, severity, location, issue
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>EDRMC / SSGI Early Warning Alert</title>
+  <title>SSGI Disaster Alert</title>
 </head>
 <body style="margin:0;padding:20px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;background-color:#0b132b;color:#f8fafc;">
   <div style="max-width:620px;margin:0 auto;background:#1e293b;border:1px solid rgba(255,255,255,0.1);border-radius:16px;overflow:hidden;box-shadow:0 12px 40px rgba(0,0,0,0.5);">
@@ -253,7 +306,7 @@ function buildProfessionalEmailHtml({ alertId, hazard, severity, location, issue
           Federal Democratic Republic of Ethiopia
         </div>
         <h1 style="margin:4px 0 0;font-size:19px;color:#ffffff;font-weight:800;">
-          EDRMC &amp; SSGI Multi-Hazard Early Warning System
+          SSGI Multi-Hazard Disaster Alert System
         </h1>
       </div>
     </div>
@@ -312,11 +365,13 @@ function buildProfessionalEmailHtml({ alertId, hazard, severity, location, issue
       <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:16px 20px;margin-bottom:22px;">
         <h3 style="margin:0 0 10px 0;font-size:13.5px;color:#f8fafc;font-weight:700;">Required Public Action Protocols:</h3>
         <ul style="margin:0;padding-left:18px;color:#cbd5e1;font-size:12.5px;line-height:1.6;">
-          ${(actions || [
-            "Monitor local DRMC emergency broadcasts and SMS updates.",
-            "Avoid high-risk low-lying channels, saturated steep escarpments, and firelines.",
-            "Report stranded communities or infrastructural breaches to official hotlines.",
-          ])
+          ${(
+            actions || [
+              "Monitor local DRMC emergency broadcasts and SMS updates.",
+              "Avoid high-risk low-lying channels, saturated steep escarpments, and firelines.",
+              "Report stranded communities or infrastructural breaches to official hotlines.",
+            ]
+          )
             .map((act) => `<li style="margin-bottom:4px;">${act}</li>`)
             .join("")}
         </ul>
@@ -338,7 +393,7 @@ function buildProfessionalEmailHtml({ alertId, hazard, severity, location, issue
 
     <!-- Footer -->
     <div style="background:#0f172a;padding:14px 28px;border-top:1px solid rgba(255,255,255,0.08);text-align:center;font-size:11px;color:#64748b;">
-      Disaster Monitoring Center — Space Science &amp; Geospatial Institute (SSGI) | Ethiopian Disaster Risk Management Commission (EDRMC)
+      Geodesy &amp; Geodynamics Information Management System (GGIMS) — Space Science &amp; Geospatial Institute (SSGI)
     </div>
   </div>
 </body>
@@ -371,9 +426,7 @@ function buildSubscriptionConfirmationEmailHtml({
   const hazardsLabel =
     hazards.includes("all") || hazards.length === 0
       ? "All Hazards (Earthquake, Fire, Flood, Landslide, Drought, Volcano)"
-      : hazards
-          .map((h) => h.charAt(0).toUpperCase() + h.slice(1))
-          .join(", ");
+      : hazards.map((h) => h.charAt(0).toUpperCase() + h.slice(1)).join(", ");
 
   return `
 <!DOCTYPE html>
@@ -381,7 +434,7 @@ function buildSubscriptionConfirmationEmailHtml({
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>EDRMC &amp; SSGI Early Warning Subscription Confirmed</title>
+  <title>SSGI Disaster Alert Subscription Confirmed</title>
 </head>
 <body style="margin:0;padding:20px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;background-color:#0b132b;color:#f8fafc;">
   <div style="max-width:600px;margin:0 auto;background:#1e293b;border:1px solid rgba(255,255,255,0.12);border-radius:16px;overflow:hidden;box-shadow:0 12px 40px rgba(0,0,0,0.5);">
@@ -392,7 +445,7 @@ function buildSubscriptionConfirmationEmailHtml({
         Federal Democratic Republic of Ethiopia
       </div>
       <h1 style="margin:6px 0 0;font-size:20px;color:#ffffff;font-weight:800;">
-        EDRMC &amp; SSGI Disaster Early Warning System
+        SSGI Disaster &amp; Hazard Alert System
       </h1>
       <div style="color:#38bdf8;font-size:12.5px;font-weight:700;margin-top:4px;">
         ✅ Notification Preferences Confirmed
@@ -405,7 +458,7 @@ function buildSubscriptionConfirmationEmailHtml({
         Dear <strong>${name || "Citizen / Officer"}</strong>,
       </p>
       <p style="margin:0 0 20px;font-size:13.5px;color:#cbd5e1;line-height:1.6;">
-        Your notification preferences have been successfully configured in the Ethiopian Multi-Hazard Early Warning System. You will receive official notifications whenever critical hazard events are detected by national satellite and ground telemetry.
+        Your notification preferences have been successfully configured in the Ethiopian Multi-Hazard Disaster Alert System. You will receive official notifications whenever critical hazard events are detected by national satellite and ground telemetry.
       </p>
 
       <!-- Preferences Card -->
@@ -448,7 +501,7 @@ function buildSubscriptionConfirmationEmailHtml({
 
       <!-- Instructions & Hotline -->
       <div style="background:rgba(2,132,199,0.08);border:1px solid rgba(2,132,199,0.25);border-radius:10px;padding:14px 18px;margin-bottom:22px;font-size:12.5px;color:#cbd5e1;line-height:1.5;">
-        <div style="font-weight:800;color:#38bdf8;margin-bottom:4px;">📡 Real-Time Dispatch Policy:</div>
+        <div style="font-weight:800;color:#38bdf8;margin-bottom:4px;">📡 Near Real-Time Dispatch Policy:</div>
         Alerts are issued <strong>only when new critical thresholds are breached</strong> by automated sensors (USGS seismic, FIRMS thermal satellites, GLoFAS hydrological gauges, and NASA landslide indices). Zero duplicate morning spam.
       </div>
 
@@ -468,7 +521,7 @@ function buildSubscriptionConfirmationEmailHtml({
 
     <!-- Footer -->
     <div style="background:#0f172a;padding:14px 28px;border-top:1px solid rgba(255,255,255,0.08);text-align:center;font-size:11px;color:#64748b;">
-      Disaster Monitoring Center — Space Science &amp; Geospatial Institute (SSGI) | Ethiopian Disaster Risk Management Commission (EDRMC)
+      Geodesy &amp; Geodynamics Information Management System (GGIMS) — Space Science &amp; Geospatial Institute (SSGI)
     </div>
   </div>
 </body>
@@ -485,11 +538,18 @@ const SEED_ALERT_HISTORY = [
     region: "Oromia",
     severity: "Warning",
     issuedAt: new Date(Date.now() - 4 * 24 * 3600 * 1000 - 8 * 3600 * 1000),
-    resolvedAt: new Date(Date.now() - 4 * 24 * 3600 * 1000 - 4 * 3600 * 1000 - 20 * 60 * 1000),
+    resolvedAt: new Date(
+      Date.now() - 4 * 24 * 3600 * 1000 - 4 * 3600 * 1000 - 20 * 60 * 1000,
+    ),
     duration: "3h 40m",
     status: "Resolved",
-    description: "Awash River discharge exceeded bankfull capacity at 295 m³/s. Downstream dykes stabilized and flow normalized.",
-    telemetry: { discharge: "295 m³/s", threshold: "280 m³/s", basin: "Awash Basin" },
+    description:
+      "Awash River discharge exceeded bankfull capacity at 295 m³/s. Downstream dykes stabilized and flow normalized.",
+    telemetry: {
+      discharge: "295 m³/s",
+      threshold: "280 m³/s",
+      basin: "Awash Basin",
+    },
     dispatchedSmsCount: 1420,
     dispatchedEmailCount: 88,
   },
@@ -504,7 +564,8 @@ const SEED_ALERT_HISTORY = [
     resolvedAt: new Date(Date.now() - 2 * 24 * 3600 * 1000 - 1 * 3600 * 1000),
     duration: "4h 00m",
     status: "Resolved",
-    description: "Multiple high-confidence VIIRS hotspots detected near rural farming settlements. Controlled by regional fire units.",
+    description:
+      "Multiple high-confidence VIIRS hotspots detected near rural farming settlements. Controlled by regional fire units.",
     telemetry: { maxFRP: "52.4 MW", satellites: "VIIRS SNPP + MODIS" },
     dispatchedSmsCount: 840,
     dispatchedEmailCount: 42,
@@ -520,7 +581,8 @@ const SEED_ALERT_HISTORY = [
     resolvedAt: new Date(Date.now() - 1 * 24 * 3600 * 1000 - 6 * 3600 * 1000),
     duration: "6h 00m",
     status: "Resolved",
-    description: "USGS detected M3.8 shallow earthquake at 10.0 km depth. No structural damage reported in nearby pastoralist zones.",
+    description:
+      "USGS detected M3.8 shallow earthquake at 10.0 km depth. No structural damage reported in nearby pastoralist zones.",
     telemetry: { magnitude: "M3.8", depth: "10 km", energyGJ: "12.4 GJ" },
     dispatchedSmsCount: 650,
     dispatchedEmailCount: 35,
@@ -536,7 +598,8 @@ const SEED_ALERT_HISTORY = [
     resolvedAt: null,
     duration: "Ongoing (14h)",
     status: "Active",
-    description: "7-Day Antecedent Rainfall Index (ARI) reached 142.5 mm on weathered basalt saprolite slopes. Factor of Safety dropped to 0.88.",
+    description:
+      "7-Day Antecedent Rainfall Index (ARI) reached 142.5 mm on weathered basalt saprolite slopes. Factor of Safety dropped to 0.88.",
     telemetry: { factorOfSafety: "0.88", ari7d: "142.5 mm", slope: "38°" },
     dispatchedSmsCount: 2350,
     dispatchedEmailCount: 110,
@@ -552,7 +615,8 @@ const SEED_ALERT_HISTORY = [
     resolvedAt: null,
     duration: "Ongoing (1d 12h)",
     status: "Active",
-    description: "CHIRPS v3 SPI-90 dropped to -2.18 with 64% precipitation deficit and severe pasture depletion.",
+    description:
+      "CHIRPS v3 SPI-90 dropped to -2.18 with 64% precipitation deficit and severe pasture depletion.",
     telemetry: { spi90: "-2.18", precipDeficit: "-64%", pastureDeficit: "78%" },
     dispatchedSmsCount: 4120,
     dispatchedEmailCount: 215,
@@ -568,8 +632,13 @@ const SEED_ALERT_HISTORY = [
     resolvedAt: new Date(Date.now() - 24 * 3600 * 1000),
     duration: "24h 00m",
     status: "Resolved",
-    description: "COMET InSAR velocity indicated localized lava lake swelling at +12 mm/yr. VONA aviation alert set to YELLOW.",
-    telemetry: { vona: "YELLOW", insarVel: "+12 mm/yr", activity: "Active Lava Lake" },
+    description:
+      "COMET InSAR velocity indicated localized lava lake swelling at +12 mm/yr. VONA aviation alert set to YELLOW.",
+    telemetry: {
+      vona: "YELLOW",
+      insarVel: "+12 mm/yr",
+      activity: "Active Lava Lake",
+    },
     dispatchedSmsCount: 310,
     dispatchedEmailCount: 65,
   },
@@ -596,7 +665,7 @@ async function dispatchAlertToAllRecipients({
   sendEmail = true,
   targetPhone = null,
   targetEmail = null,
-  dispatchedBy = "EDRMC / SSGI Early Warning Automated Monitor",
+  dispatchedBy = "SSGI Automated Hazard Monitor",
   eventFingerprint = null,
   isTest = false,
 }) {
@@ -640,7 +709,10 @@ async function dispatchAlertToAllRecipients({
         }
       }
     } catch (userErr) {
-      console.warn("[alertService] Error loading registered users for alert:", userErr.message);
+      console.warn(
+        "[alertService] Error loading registered users for alert:",
+        userErr.message,
+      );
     }
 
     // 2. Gather Alert Subscriptions
@@ -660,13 +732,20 @@ async function dispatchAlertToAllRecipients({
             const norm = normalizeEthiopianPhone(sub.phone);
             if (norm) phoneList.add(norm);
           }
-          if (sub.email && (sub.channel === "email" || sub.channel === "both")) {
-            if (sub.email.includes("@")) emailList.add(sub.email.trim().toLowerCase());
+          if (
+            sub.email &&
+            (sub.channel === "email" || sub.channel === "both")
+          ) {
+            if (sub.email.includes("@"))
+              emailList.add(sub.email.trim().toLowerCase());
           }
         }
       }
     } catch (subErr) {
-      console.warn("[alertService] Error loading alert subscriptions:", subErr.message);
+      console.warn(
+        "[alertService] Error loading alert subscriptions:",
+        subErr.message,
+      );
     }
   }
 
@@ -708,7 +787,10 @@ async function dispatchAlertToAllRecipients({
           });
         }
       } catch (smsErr) {
-        console.error(`[alertService] SMS failed for ${phone}:`, smsErr.message);
+        console.error(
+          `[alertService] SMS failed for ${phone}:`,
+          smsErr.message,
+        );
         dispatchLogs.push({
           channel: "sms",
           to: phone,
@@ -740,9 +822,9 @@ async function dispatchAlertToAllRecipients({
             from:
               process.env.EMAIL_FROM ||
               process.env.EMAIL_USER ||
-              "earlywarning@ssgi.gov.et",
+              "alerts@ssgi.gov.et",
             to: email,
-            subject: `🚨 [${severity.toUpperCase()}] Ethiopia Early Warning: ${hazard.toUpperCase()} — ${location}`,
+            subject: `🚨 [${severity.toUpperCase()}] Ethiopia Disaster Alert: ${hazard.toUpperCase()} — ${location}`,
             html: emailHtml,
           });
           emailSuccessCount++;
@@ -753,7 +835,10 @@ async function dispatchAlertToAllRecipients({
             messageId: info?.messageId,
           });
         } catch (mailErr) {
-          console.error(`[alertService] Email failed for ${email}:`, mailErr.message);
+          console.error(
+            `[alertService] Email failed for ${email}:`,
+            mailErr.message,
+          );
           dispatchLogs.push({
             channel: "email",
             to: email,
@@ -766,7 +851,8 @@ async function dispatchAlertToAllRecipients({
           channel: "email",
           to: email,
           status: "failed",
-          error: "No email transporter configured (check EMAIL_USER/EMAIL_PASS in .env)",
+          error:
+            "No email transporter configured (check EMAIL_USER/EMAIL_PASS in .env)",
         });
       }
     }
@@ -794,7 +880,10 @@ async function dispatchAlertToAllRecipients({
     });
     await savedAlert.save();
   } catch (saveErr) {
-    console.warn("[alertService] Could not save AlertHistory record:", saveErr.message);
+    console.warn(
+      "[alertService] Could not save AlertHistory record:",
+      saveErr.message,
+    );
   }
 
   console.log(

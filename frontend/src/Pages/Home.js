@@ -434,7 +434,7 @@ const HAZARDS = [
     border: "border-blue-500/40",
     glow: "hover:shadow-blue-500/20",
     badge: "bg-blue-500/10 text-blue-600 dark:text-blue-300",
-    desc: "We monitor seismic activity to provide early warnings and assess structural vulnerabilities in high-risk zones.",
+    desc: "We monitor seismic activity to assess structural vulnerabilities in high-risk zones.",
   },
   {
     img: "/icons/icons8-landslide-100.png",
@@ -464,7 +464,7 @@ const HAZARDS = [
     border: "border-red-500/40",
     glow: "hover:shadow-red-500/20",
     badge: "bg-red-500/10 text-red-600 dark:text-red-300",
-    desc: "Monitoring volcanic activity, ground deformation and gas emissions to predict potential eruptions.",
+    desc: "Monitoring volcanic activity, ground deformation and gas emissions",
   },
   {
     img: "/icons/icons8-fire-100.png",
@@ -474,7 +474,7 @@ const HAZARDS = [
     border: "border-orange-500/40",
     glow: "hover:shadow-orange-500/20",
     badge: "bg-orange-500/10 text-orange-600 dark:text-orange-300",
-    desc: "Satellite imagery and weather data to detect fire hotspots and assess risk in vulnerable regions.",
+    desc: "Satellite imagery and weather data to detect fire hotspots.",
   },
   {
     img: "/icons/icons8-drought-100.png",
@@ -491,8 +491,8 @@ const HAZARDS = [
 const STATS = [
   { num: "6", label: "Hazards Monitored" },
   { num: "25+", label: "Ethiopian Volcanoes" },
-  { num: "Real-Time", label: "Fire Detection" },
-  { num: "InSAR+GPS", label: "Geodetic Methods" },
+  { num: "Near Real-Time", label: "FIRMS Fire Hotspots" },
+  { num: "InSAR+GPS", label: "Deformation Tracking" },
 ];
 
 const TECH = [
@@ -542,33 +542,35 @@ function useCountUp(target, duration = 1600, trigger) {
 }
 
 function StatCard({ num, label, trigger }) {
-  const clean = num
-    .replace("+", "")
-    .replace("Real-Time", "")
-    .replace("InSAR+GPS", "");
+  const str = String(num ?? "").trim();
+  const isNumeric = /^\d/.test(str);
+  const clean = str.replace(/[^\d]/g, "");
   const displayed = useCountUp(clean, 1400, trigger);
-  const suffix = num.endsWith("+") ? "+" : "";
-  const raw = /^\d/.test(num) ? `${displayed}${suffix}` : num;
+  const suffix = str.endsWith("+") ? "+" : "";
+  const raw = isNumeric ? `${displayed}${suffix}` : str;
   return (
     <div className="flex flex-col items-center">
       <span
         style={{
-          fontSize: "1.75rem",
+          fontSize: str.length > 8 ? "1.35rem" : "1.75rem",
           fontWeight: 800,
           color: "#fb923c",
-          lineHeight: 1,
+          lineHeight: 1.1,
+          textAlign: "center",
+          whiteSpace: "nowrap",
         }}
       >
         {raw}
       </span>
       <span
         style={{
-          marginTop: "4px",
+          marginTop: "6px",
           fontSize: "11px",
           textTransform: "uppercase",
           letterSpacing: "0.1em",
           color: "rgba(209,213,219,0.9)",
           whiteSpace: "nowrap",
+          textAlign: "center",
         }}
       >
         {label}
@@ -644,16 +646,16 @@ export default function Home() {
   const [statsList, setStatsList] = useState(STATS);
   const [hazardsList, setHazardsList] = useState(HAZARDS);
   const [heroData, setHeroData] = useState({
-    badge: "Live Monitoring — SSGI Ethiopia",
+    badge: "SSGI — Geodesy & Geodynamics Department",
     subtitle:
-      "Real-time satellite monitoring of natural hazards across Ethiopia — earthquake fault lines, volcanic deformation, floods, fires, droughts and landslides.",
+      "The centralized digital platform for the Ethiopian Space Science and Geospatial Institute (SSGI), Geodesy and Geodynamics Department. Seamlessly access geodesy and geodynamics services, explore geospatial data products, and collaborate through shared local research.",
     aboutSummary:
-      "Using satellite geodesy, InSAR, GPS, and remote sensing to monitor ground deformation and natural hazards — supporting disaster preparedness and sustainable development across Ethiopia.",
+      "The Geodesy and Geodynamics Information Management System (GGIMS) is a web-based platform developed for the Geodesy and Geodynamics Department of the Ethiopian Space Science and Geospatial Institute (SSGI), Geodesy and Geodynamics Department. Its purpose is to provide a centralized digital platform for accessing the department’s services, information, and geospatial data products and the sharing of research and locally collected data.",
   });
 
   useEffect(() => {
     let isMounted = true;
-    fetch("/api/content")
+    fetch("/api/content", { cache: "no-store" })
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
         if (!isMounted || !data) return;
@@ -690,11 +692,26 @@ export default function Home() {
           );
         }
         if (hero) {
+          const isStaleLegacy =
+            typeof hero.subtitle === "string" &&
+            (hero.subtitle.includes(
+              "early warning systems for the Federal Democratic Republic",
+            ) ||
+              !hero.subtitle.includes("Geodesy and Geodynamics Department"));
+          const isStaleAbout =
+            typeof hero.aboutSummary === "string" &&
+            hero.aboutSummary.includes(
+              "The system addresses the lack of a centralized platform",
+            );
           setHeroData((prev) => ({
             ...prev,
             badge: hero.badge || prev.badge,
-            subtitle: hero.subtitle || prev.subtitle,
-            aboutSummary: hero.aboutSummary || prev.aboutSummary,
+            subtitle: isStaleLegacy
+              ? prev.subtitle
+              : hero.subtitle || prev.subtitle,
+            aboutSummary: isStaleAbout
+              ? prev.aboutSummary
+              : hero.aboutSummary || prev.aboutSummary,
           }));
         }
       })
@@ -837,23 +854,22 @@ export default function Home() {
 
           {/* Headline — inline styles bypass all theme.css overrides */}
           <h1
-            className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold leading-tight tracking-tight mb-6"
+            className="text-4xl sm:text-5xl md:text-6xl font-extrabold leading-tight tracking-tight mb-6"
             style={{ color: "#ffffff" }}
           >
-            <span style={{ color: "#ffffff" }}>Disaster</span>{" "}
+            <span style={{ color: "#ffffff" }}>Geodesy &amp; Geodynamics</span>{" "}
+            <br />
             <span
               className="bg-gradient-to-r from-orange-400 to-amber-300 bg-clip-text"
               style={{ color: "transparent" }}
             >
-              Monitoring
+              Information Management System
             </span>
-            <br />
-            <span style={{ color: "#ffffff" }}>Center</span>
           </h1>
 
           {/* Subtitle */}
           <p
-            className="hero-subtitle text-base sm:text-lg md:text-xl max-w-2xl mx-auto leading-relaxed mb-10"
+            className="hero-subtitle text-base sm:text-lg md:text-xl max-w-3xl mx-auto leading-relaxed mb-10"
             style={{ color: "rgba(209,213,219,0.95)" }}
           >
             {heroData.subtitle}
@@ -886,51 +902,6 @@ export default function Home() {
             >
               <FiMap size={15} /> Explore Hazards
             </a>
-
-            <Link
-              to="/early-warning"
-              className="inline-flex items-center gap-2.5 font-semibold px-5 py-2.5 text-sm sm:text-base transition-all duration-200 hover:-translate-y-0.5"
-              style={{
-                borderRadius: "999px",
-                background: isDark
-                  ? "rgba(3,7,18,0.97)"
-                  : "rgba(15,23,42,0.95)",
-                border: "1.5px solid rgba(255,255,255,0.18)",
-                color: "#f1f5f9",
-                boxShadow: "0 6px 28px rgba(0,0,0,0.30)",
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background = isDark
-                  ? "rgba(15,23,42,1)"
-                  : "rgba(30,41,59,1)";
-                e.currentTarget.style.color = "#ffffff";
-                e.currentTarget.style.boxShadow = "0 8px 36px rgba(0,0,0,0.45)";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = isDark
-                  ? "rgba(3,7,18,0.97)"
-                  : "rgba(15,23,42,0.95)";
-                e.currentTarget.style.color = "#f1f5f9";
-                e.currentTarget.style.boxShadow = "0 6px 28px rgba(0,0,0,0.30)";
-              }}
-            >
-              <span
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  width: "22px",
-                  height: "22px",
-                  borderRadius: "50%",
-                  background: isDark ? "#1d4ed8" : "#2563eb",
-                  flexShrink: 0,
-                }}
-              >
-                <FiAlertTriangle size={12} style={{ color: "#ffffff" }} />
-              </span>
-              Early Warning
-              <FiArrowRight size={14} style={{ opacity: 0.8 }} />
-            </Link>
 
             <Link
               to="/research"
@@ -1149,7 +1120,7 @@ export default function Home() {
                 marginBottom: "16px",
               }}
             >
-              Protecting Ethiopia
+              Near-Real-time Satellite Monitoring
               <br />
               <span
                 style={{
@@ -1159,7 +1130,7 @@ export default function Home() {
                   color: "transparent",
                 }}
               >
-                Through Precision Science
+                of Ethiopia's Natural Hazards
               </span>
             </div>
             <div
@@ -1187,7 +1158,6 @@ export default function Home() {
                 "InSAR Monitoring",
                 "GPS Networks",
                 "Seismic Analysis",
-                "Early Warning",
                 "Remote Sensing",
                 "Data Portal",
               ].map((tag) => (

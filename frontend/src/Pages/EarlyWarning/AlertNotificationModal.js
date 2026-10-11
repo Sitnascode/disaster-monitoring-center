@@ -599,7 +599,7 @@ export function AlertNotificationModal({
               >
                 {isUserAdmin
                   ? "EDRMC & SSGI Alert Gateway"
-                  : "Disaster Early Warning System"}
+                  : "Disaster Alert System"}
               </div>
               <h2
                 style={{
@@ -726,10 +726,11 @@ export function AlertNotificationModal({
                 >
                   📡 SMS Ethiopia Gateway &amp; Official Email Integration
                 </div>
-                Configure real-time automated SMS dispatches to your mobile
+                Configure near-real-time automated SMS dispatches to your mobile
                 (09... / 07... / +251...) and official email bulletins for
-                severe disaster threats. Registering your phone automatically enrolls
-                your contact into the SMS Ethiopia emergency dispatch roster.
+                severe disaster threats. Registering your phone automatically
+                enrolls your contact into the SMS Ethiopia emergency dispatch
+                roster.
               </div>
 
               {/* Logged in indicator */}

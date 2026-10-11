@@ -89,7 +89,9 @@ function ConfirmModal({
               color: "#ffffff",
             }}
           >
-            <span style={{ color: "#ffffff", fontWeight: 700, fontSize: "14px" }}>
+            <span
+              style={{ color: "#ffffff", fontWeight: 700, fontSize: "14px" }}
+            >
               Confirm
             </span>
           </button>
@@ -381,7 +383,10 @@ function UserCard({
                 (e.currentTarget.style.backgroundColor = "#10b981")
               }
             >
-              <FiCheck size={13} style={{ color: "#ffffff", stroke: "#ffffff" }} />
+              <FiCheck
+                size={13}
+                style={{ color: "#ffffff", stroke: "#ffffff" }}
+              />
               <span style={{ color: "#ffffff", fontWeight: 600 }}>Approve</span>
             </button>
             <button
@@ -417,8 +422,13 @@ function UserCard({
               (e.currentTarget.style.boxShadow = "0 2px 8px #ef444440")
             }
           >
-            <FiTrash2 size={13} style={{ color: "#ffffff", stroke: "#ffffff" }} />
-            <span style={{ color: "#ffffff", fontWeight: 700 }}>Remove User</span>
+            <FiTrash2
+              size={13}
+              style={{ color: "#ffffff", stroke: "#ffffff" }}
+            />
+            <span style={{ color: "#ffffff", fontWeight: 700 }}>
+              Remove User
+            </span>
           </button>
         )}
       </div>
@@ -538,7 +548,12 @@ function ReviewNoteModal({ upload, onConfirm, onCancel }) {
 }
 
 // ── Operational Modules Bar (Alert History, Dispatch Alert, Content Management) ──
-function OperationalModulesBar({ activeTab, onSelectTab, alertCount = 0, isDark = false }) {
+function OperationalModulesBar({
+  activeTab,
+  onSelectTab,
+  alertCount = 0,
+  isDark = false,
+}) {
   const modules = [
     {
       id: "alert-history",
@@ -604,11 +619,17 @@ function OperationalModulesBar({ activeTab, onSelectTab, alertCount = 0, isDark 
               }`}
               style={{
                 backgroundColor: isActive
-                  ? (isDark ? mod.bgActiveDark : mod.bgActiveLight)
-                  : (isDark ? "rgba(31, 41, 55, 0.75)" : "rgba(255, 255, 255, 0.95)"),
+                  ? isDark
+                    ? mod.bgActiveDark
+                    : mod.bgActiveLight
+                  : isDark
+                    ? "rgba(31, 41, 55, 0.75)"
+                    : "rgba(255, 255, 255, 0.95)",
                 borderColor: isActive
                   ? mod.borderActive
-                  : (isDark ? "rgba(55, 65, 81, 0.8)" : "rgba(229, 231, 235, 0.9)"),
+                  : isDark
+                    ? "rgba(55, 65, 81, 0.8)"
+                    : "rgba(229, 231, 235, 0.9)",
               }}
             >
               <div className="flex items-center gap-3">
@@ -617,7 +638,11 @@ function OperationalModulesBar({ activeTab, onSelectTab, alertCount = 0, isDark 
                     isActive ? "op-icon-active" : "op-icon-inactive"
                   }`}
                   style={{
-                    backgroundColor: isActive ? mod.color : (isDark ? mod.color + "28" : mod.color + "18"),
+                    backgroundColor: isActive
+                      ? mod.color
+                      : isDark
+                        ? mod.color + "28"
+                        : mod.color + "18",
                     color: isActive ? "#ffffff" : mod.color,
                   }}
                 >
@@ -807,7 +832,10 @@ function UploadCard({
               (e.currentTarget.style.backgroundColor = "#10b981")
             }
           >
-            <FiCheck size={13} style={{ color: "#ffffff", stroke: "#ffffff" }} />
+            <FiCheck
+              size={13}
+              style={{ color: "#ffffff", stroke: "#ffffff" }}
+            />
             <span style={{ color: "#ffffff", fontWeight: 600 }}>Approve</span>
           </button>
         )}
@@ -823,8 +851,13 @@ function UploadCard({
               (e.currentTarget.style.backgroundColor = "#7c3aed")
             }
           >
-            <FiMessageSquare size={13} style={{ color: "#ffffff", stroke: "#ffffff" }} />
-            <span style={{ color: "#ffffff", fontWeight: 600 }}>Request Changes</span>
+            <FiMessageSquare
+              size={13}
+              style={{ color: "#ffffff", stroke: "#ffffff" }}
+            />
+            <span style={{ color: "#ffffff", fontWeight: 600 }}>
+              Request Changes
+            </span>
           </button>
         )}
         {showReject && (
@@ -860,7 +893,10 @@ function UploadCard({
               (e.currentTarget.style.boxShadow = "0 2px 8px #ef444440")
             }
           >
-            <FiTrash2 size={13} style={{ color: "#ffffff", stroke: "#ffffff" }} />
+            <FiTrash2
+              size={13}
+              style={{ color: "#ffffff", stroke: "#ffffff" }}
+            />
             <span style={{ color: "#ffffff", fontWeight: 700 }}>Remove</span>
           </button>
         )}
@@ -1638,7 +1674,7 @@ function AdminPanel() {
         } finally {
           setCmsSaving(false);
         }
-      }
+      },
     );
   };
 
@@ -2674,14 +2710,19 @@ function AdminPanel() {
                       className="op-dispatch-banner-icon-box w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 shadow-md"
                       style={{ backgroundColor: "#ef4444", color: "#ffffff" }}
                     >
-                      <FiSend size={16} style={{ color: "#ffffff", stroke: "#ffffff" }} />
+                      <FiSend
+                        size={16}
+                        style={{ color: "#ffffff", stroke: "#ffffff" }}
+                      />
                     </div>
                     <div>
                       <span className="font-bold text-red-500 block text-xs tracking-wider uppercase">
                         Multi-Channel Broadcast Console
                       </span>
                       <p className="text-xs text-gray-600 dark:text-gray-300 mt-0.5">
-                        Dispatches real-time SMS via SMS Ethiopia API and HTML email bulletins simultaneously to regional responders and subscribers.
+                        Dispatches Near-real-time SMS via SMS Ethiopia API and
+                        HTML email bulletins simultaneously to regional
+                        responders and subscribers.
                       </p>
                     </div>
                   </div>
@@ -2726,7 +2767,9 @@ function AdminPanel() {
                       <div className="space-y-4">
                         <h3 className="text-xs font-bold uppercase tracking-wider text-gray-900 dark:text-white pb-2 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between">
                           <span>Alert Parameters &amp; Details</span>
-                          <span className="text-[10px] text-gray-400 font-normal">Step 1 of 2</span>
+                          <span className="text-[10px] text-gray-400 font-normal">
+                            Step 1 of 2
+                          </span>
                         </h3>
 
                         {/* Hazard + Severity */}
@@ -2747,8 +2790,12 @@ function AdminPanel() {
                             >
                               <option value="flood">Flood Warning</option>
                               <option value="fire">Wildfire Watch</option>
-                              <option value="earthquake">Seismic Advisory</option>
-                              <option value="landslide">Landslide Warning</option>
+                              <option value="earthquake">
+                                Seismic Advisory
+                              </option>
+                              <option value="landslide">
+                                Landslide Warning
+                              </option>
                               <option value="drought">Drought Emergency</option>
                               <option value="volcano">Volcanic Advisory</option>
                             </select>
@@ -2767,10 +2814,14 @@ function AdminPanel() {
                                 }))
                               }
                             >
-                              <option value="Emergency">Emergency (Highest)</option>
+                              <option value="Emergency">
+                                Emergency (Highest)
+                              </option>
                               <option value="Warning">Warning (Urgent)</option>
                               <option value="Watch">Watch (Elevated)</option>
-                              <option value="Advisory">Advisory (Notice)</option>
+                              <option value="Advisory">
+                                Advisory (Notice)
+                              </option>
                             </select>
                           </div>
                         </div>
@@ -2820,7 +2871,10 @@ function AdminPanel() {
                             className="w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white text-xs font-semibold outline-none focus:border-indigo-500"
                             value={dispForm.title}
                             onChange={(e) =>
-                              setDispForm((f) => ({ ...f, title: e.target.value }))
+                              setDispForm((f) => ({
+                                ...f,
+                                title: e.target.value,
+                              }))
                             }
                             placeholder="e.g., Flood Warning — Oromia Basin"
                           />
@@ -2852,7 +2906,9 @@ function AdminPanel() {
                       <div className="space-y-4">
                         <h3 className="text-xs font-bold uppercase tracking-wider text-gray-900 dark:text-white pb-2 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between">
                           <span>Delivery Channels &amp; Target Rosters</span>
-                          <span className="text-[10px] text-gray-400 font-normal">Step 2 of 2</span>
+                          <span className="text-[10px] text-gray-400 font-normal">
+                            Step 2 of 2
+                          </span>
                         </h3>
 
                         {/* Channel selector options */}
@@ -2997,7 +3053,10 @@ function AdminPanel() {
                       disabled={cmsSaving || cmsLoading || !cmsContent}
                       className="px-4 py-2 rounded-xl text-xs font-bold text-white bg-[#1f4fd8] hover:bg-blue-700 shadow-sm transition-all flex items-center gap-1.5 disabled:opacity-50"
                     >
-                      <FiSave size={13} className={cmsSaving ? "animate-spin" : ""} />
+                      <FiSave
+                        size={13}
+                        className={cmsSaving ? "animate-spin" : ""}
+                      />
                       {cmsSaving ? "Saving..." : "Save Changes"}
                     </button>
                   </div>
@@ -3005,12 +3064,19 @@ function AdminPanel() {
 
                 {cmsLoading && !cmsContent ? (
                   <div className="py-16 text-center text-gray-500 dark:text-gray-400 flex flex-col items-center justify-center gap-3">
-                    <FiRefreshCw size={24} className="animate-spin text-blue-600" />
-                    <p className="text-sm font-medium">Loading CMS configuration...</p>
+                    <FiRefreshCw
+                      size={24}
+                      className="animate-spin text-blue-600"
+                    />
+                    <p className="text-sm font-medium">
+                      Loading CMS configuration...
+                    </p>
                   </div>
                 ) : !cmsContent ? (
                   <div className="py-12 text-center">
-                    <p className="text-sm text-gray-500 mb-3">No CMS content loaded.</p>
+                    <p className="text-sm text-gray-500 mb-3">
+                      No CMS content loaded.
+                    </p>
                     <button
                       onClick={fetchCmsContent}
                       className="px-4 py-2 bg-blue-600 text-white rounded-xl text-xs font-semibold"
@@ -3074,7 +3140,8 @@ function AdminPanel() {
                       <div className="space-y-4">
                         <div className="flex items-center justify-between flex-wrap gap-2">
                           <p className="text-xs text-gray-500 dark:text-gray-400">
-                            Configure the live statistics displayed in the bottom hero counter bar on the homepage.
+                            Configure the live statistics displayed in the
+                            bottom hero counter bar on the homepage.
                           </p>
                           <button
                             type="button"
@@ -3091,7 +3158,9 @@ function AdminPanel() {
                                   },
                                 ],
                               }));
-                              showToast("New statistic metric added! Configure below.");
+                              showToast(
+                                "New statistic metric added! Configure below.",
+                              );
                               setTimeout(() => {
                                 statsEndRef.current?.scrollIntoView({
                                   behavior: "smooth",
@@ -3125,7 +3194,9 @@ function AdminPanel() {
                                         setCmsContent((prev) => ({
                                           ...prev,
                                           stats: prev.stats.map((s, i) =>
-                                            i === idx ? { ...s, is_active: val } : s
+                                            i === idx
+                                              ? { ...s, is_active: val }
+                                              : s,
                                           ),
                                         }));
                                       }}
@@ -3138,7 +3209,9 @@ function AdminPanel() {
                                       onClick={() => {
                                         setCmsContent((prev) => ({
                                           ...prev,
-                                          stats: prev.stats.filter((_, i) => i !== idx),
+                                          stats: prev.stats.filter(
+                                            (_, i) => i !== idx,
+                                          ),
                                         }));
                                       }}
                                       className="text-red-500 hover:text-red-700 p-1 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/30 transition-all"
@@ -3164,7 +3237,7 @@ function AdminPanel() {
                                       setCmsContent((prev) => ({
                                         ...prev,
                                         stats: prev.stats.map((s, i) =>
-                                          i === idx ? { ...s, num: val } : s
+                                          i === idx ? { ...s, num: val } : s,
                                         ),
                                       }));
                                     }}
@@ -3179,11 +3252,12 @@ function AdminPanel() {
                                     type="number"
                                     value={stat.order || idx + 1}
                                     onChange={(e) => {
-                                      const val = parseInt(e.target.value, 10) || 0;
+                                      const val =
+                                        parseInt(e.target.value, 10) || 0;
                                       setCmsContent((prev) => ({
                                         ...prev,
                                         stats: prev.stats.map((s, i) =>
-                                          i === idx ? { ...s, order: val } : s
+                                          i === idx ? { ...s, order: val } : s,
                                         ),
                                       }));
                                     }}
@@ -3205,7 +3279,7 @@ function AdminPanel() {
                                     setCmsContent((prev) => ({
                                       ...prev,
                                       stats: prev.stats.map((s, i) =>
-                                        i === idx ? { ...s, label: val } : s
+                                        i === idx ? { ...s, label: val } : s,
                                       ),
                                     }));
                                   }}
@@ -3223,7 +3297,8 @@ function AdminPanel() {
                     {cmsSubTab === "hazards" && (
                       <div className="space-y-4">
                         <p className="text-xs text-gray-500 dark:text-gray-400">
-                          Edit the descriptive text, badge labels, and target links for each hazard card displayed on the Homepage.
+                          Edit the descriptive text, badge labels, and target
+                          links for each hazard card displayed on the Homepage.
                         </p>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -3245,7 +3320,9 @@ function AdminPanel() {
                                       setCmsContent((prev) => ({
                                         ...prev,
                                         hazards: prev.hazards.map((h, i) =>
-                                          i === idx ? { ...h, is_active: val } : h
+                                          i === idx
+                                            ? { ...h, is_active: val }
+                                            : h,
                                         ),
                                       }));
                                     }}
@@ -3267,7 +3344,7 @@ function AdminPanel() {
                                       setCmsContent((prev) => ({
                                         ...prev,
                                         hazards: prev.hazards.map((h, i) =>
-                                          i === idx ? { ...h, title: val } : h
+                                          i === idx ? { ...h, title: val } : h,
                                         ),
                                       }));
                                     }}
@@ -3286,7 +3363,7 @@ function AdminPanel() {
                                       setCmsContent((prev) => ({
                                         ...prev,
                                         hazards: prev.hazards.map((h, i) =>
-                                          i === idx ? { ...h, badge: val } : h
+                                          i === idx ? { ...h, badge: val } : h,
                                         ),
                                       }));
                                     }}
@@ -3307,7 +3384,7 @@ function AdminPanel() {
                                     setCmsContent((prev) => ({
                                       ...prev,
                                       hazards: prev.hazards.map((h, i) =>
-                                        i === idx ? { ...h, desc: val } : h
+                                        i === idx ? { ...h, desc: val } : h,
                                       ),
                                     }));
                                   }}
@@ -3324,7 +3401,8 @@ function AdminPanel() {
                     {cmsSubTab === "hero" && (
                       <div className="space-y-5 w-full">
                         <p className="text-xs text-gray-500 dark:text-gray-400">
-                          Configure primary landing text, hero badges, mission statements, and departmental summary descriptions.
+                          Configure primary landing text, hero badges, mission
+                          statements, and departmental summary descriptions.
                         </p>
 
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 w-full">
@@ -3384,7 +3462,10 @@ function AdminPanel() {
                                   const val = e.target.value;
                                   setCmsContent((prev) => ({
                                     ...prev,
-                                    hero: { ...(prev.hero || {}), tagline: val },
+                                    hero: {
+                                      ...(prev.hero || {}),
+                                      tagline: val,
+                                    },
                                   }));
                                 }}
                                 className="w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white text-xs outline-none focus:border-indigo-500"
@@ -3403,7 +3484,10 @@ function AdminPanel() {
                                   const val = e.target.value;
                                   setCmsContent((prev) => ({
                                     ...prev,
-                                    hero: { ...(prev.hero || {}), subtitle: val },
+                                    hero: {
+                                      ...(prev.hero || {}),
+                                      subtitle: val,
+                                    },
                                   }));
                                 }}
                                 className="w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white text-xs outline-none resize-y focus:border-indigo-500"
@@ -3429,7 +3513,10 @@ function AdminPanel() {
                                   const val = e.target.value;
                                   setCmsContent((prev) => ({
                                     ...prev,
-                                    hero: { ...(prev.hero || {}), mission: val },
+                                    hero: {
+                                      ...(prev.hero || {}),
+                                      mission: val,
+                                    },
                                   }));
                                 }}
                                 className="w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white text-xs outline-none resize-y focus:border-indigo-500"
@@ -3448,7 +3535,10 @@ function AdminPanel() {
                                   const val = e.target.value;
                                   setCmsContent((prev) => ({
                                     ...prev,
-                                    hero: { ...(prev.hero || {}), aboutSummary: val },
+                                    hero: {
+                                      ...(prev.hero || {}),
+                                      aboutSummary: val,
+                                    },
                                   }));
                                 }}
                                 className="w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white text-xs outline-none resize-y focus:border-indigo-500"
@@ -3463,7 +3553,9 @@ function AdminPanel() {
                     {cmsSubTab === "footer" && (
                       <div className="space-y-5">
                         <p className="text-xs text-gray-500 dark:text-gray-400">
-                          Manage official contact details, emergency hotline, copyright notices, and external scientific data sources.
+                          Manage official contact details, emergency hotline,
+                          copyright notices, and external scientific data
+                          sources.
                         </p>
 
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
@@ -3484,7 +3576,10 @@ function AdminPanel() {
                                   const val = e.target.value;
                                   setCmsContent((prev) => ({
                                     ...prev,
-                                    footer: { ...(prev.footer || {}), address: val },
+                                    footer: {
+                                      ...(prev.footer || {}),
+                                      address: val,
+                                    },
                                   }));
                                 }}
                                 className="w-full px-3 py-2 rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white text-xs outline-none resize-y focus:border-indigo-500"
@@ -3503,7 +3598,10 @@ function AdminPanel() {
                                     const val = e.target.value;
                                     setCmsContent((prev) => ({
                                       ...prev,
-                                      footer: { ...(prev.footer || {}), phone: val },
+                                      footer: {
+                                        ...(prev.footer || {}),
+                                        phone: val,
+                                      },
                                     }));
                                   }}
                                   className="w-full px-3 py-2 rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white text-xs outline-none focus:border-indigo-500"
@@ -3516,12 +3614,17 @@ function AdminPanel() {
                                 </label>
                                 <input
                                   type="text"
-                                  value={cmsContent.footer?.emergencyPhone || "8335"}
+                                  value={
+                                    cmsContent.footer?.emergencyPhone || "8335"
+                                  }
                                   onChange={(e) => {
                                     const val = e.target.value;
                                     setCmsContent((prev) => ({
                                       ...prev,
-                                      footer: { ...(prev.footer || {}), emergencyPhone: val },
+                                      footer: {
+                                        ...(prev.footer || {}),
+                                        emergencyPhone: val,
+                                      },
                                     }));
                                   }}
                                   className="w-full px-3 py-2 rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white text-xs outline-none focus:border-indigo-500"
@@ -3540,7 +3643,10 @@ function AdminPanel() {
                                   const val = e.target.value;
                                   setCmsContent((prev) => ({
                                     ...prev,
-                                    footer: { ...(prev.footer || {}), email: val },
+                                    footer: {
+                                      ...(prev.footer || {}),
+                                      email: val,
+                                    },
                                   }));
                                 }}
                                 className="w-full px-3 py-2 rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white text-xs outline-none focus:border-indigo-500"
@@ -3558,7 +3664,10 @@ function AdminPanel() {
                                   const val = e.target.value;
                                   setCmsContent((prev) => ({
                                     ...prev,
-                                    footer: { ...(prev.footer || {}), copyright: val },
+                                    footer: {
+                                      ...(prev.footer || {}),
+                                      copyright: val,
+                                    },
                                   }));
                                 }}
                                 className="w-full px-3 py-2 rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white text-xs outline-none focus:border-indigo-500"
@@ -3597,88 +3706,109 @@ function AdminPanel() {
                             </div>
 
                             <div className="space-y-2.5 max-h-[420px] overflow-y-auto pr-1">
-                              {(cmsContent.footer?.dataSources || []).map((ds, idx) => (
-                                <div
-                                  key={idx}
-                                  className="p-2.5 rounded-xl border border-gray-100 dark:border-gray-700/80 bg-gray-50/70 dark:bg-gray-900/50 flex flex-col gap-2"
-                                >
-                                  <div className="flex items-center justify-between gap-2">
+                              {(cmsContent.footer?.dataSources || []).map(
+                                (ds, idx) => (
+                                  <div
+                                    key={idx}
+                                    className="p-2.5 rounded-xl border border-gray-100 dark:border-gray-700/80 bg-gray-50/70 dark:bg-gray-900/50 flex flex-col gap-2"
+                                  >
+                                    <div className="flex items-center justify-between gap-2">
+                                      <input
+                                        type="text"
+                                        placeholder="Source Name / Title"
+                                        value={ds.label}
+                                        onChange={(e) => {
+                                          const val = e.target.value;
+                                          setCmsContent((prev) => ({
+                                            ...prev,
+                                            footer: {
+                                              ...prev.footer,
+                                              dataSources:
+                                                prev.footer.dataSources.map(
+                                                  (d, i) =>
+                                                    i === idx
+                                                      ? { ...d, label: val }
+                                                      : d,
+                                                ),
+                                            },
+                                          }));
+                                        }}
+                                        className="flex-1 px-2.5 py-1.5 rounded-lg bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-xs text-gray-900 dark:text-white outline-none focus:border-indigo-500"
+                                      />
+                                      <label className="inline-flex items-center gap-1 text-[11px] text-gray-600 dark:text-gray-300 cursor-pointer flex-shrink-0">
+                                        <input
+                                          type="checkbox"
+                                          checked={ds.is_active !== false}
+                                          onChange={(e) => {
+                                            const val = e.target.checked;
+                                            setCmsContent((prev) => ({
+                                              ...prev,
+                                              footer: {
+                                                ...prev.footer,
+                                                dataSources:
+                                                  prev.footer.dataSources.map(
+                                                    (d, i) =>
+                                                      i === idx
+                                                        ? {
+                                                            ...d,
+                                                            is_active: val,
+                                                          }
+                                                        : d,
+                                                  ),
+                                              },
+                                            }));
+                                          }}
+                                        />
+                                        Active
+                                      </label>
+                                      {(cmsContent.footer?.dataSources
+                                        ?.length || 0) > 1 && (
+                                        <button
+                                          type="button"
+                                          onClick={() => {
+                                            setCmsContent((prev) => ({
+                                              ...prev,
+                                              footer: {
+                                                ...prev.footer,
+                                                dataSources:
+                                                  prev.footer.dataSources.filter(
+                                                    (_, i) => i !== idx,
+                                                  ),
+                                              },
+                                            }));
+                                          }}
+                                          className="text-red-500 hover:text-red-700 p-1 rounded hover:bg-red-50 dark:hover:bg-red-950/30"
+                                          title="Remove source"
+                                        >
+                                          <FiTrash2 size={12} />
+                                        </button>
+                                      )}
+                                    </div>
                                     <input
                                       type="text"
-                                      placeholder="Source Name / Title"
-                                      value={ds.label}
+                                      placeholder="https://..."
+                                      value={ds.href}
                                       onChange={(e) => {
                                         const val = e.target.value;
                                         setCmsContent((prev) => ({
                                           ...prev,
                                           footer: {
                                             ...prev.footer,
-                                            dataSources: prev.footer.dataSources.map((d, i) =>
-                                              i === idx ? { ...d, label: val } : d
-                                            ),
+                                            dataSources:
+                                              prev.footer.dataSources.map(
+                                                (d, i) =>
+                                                  i === idx
+                                                    ? { ...d, href: val }
+                                                    : d,
+                                              ),
                                           },
                                         }));
                                       }}
-                                      className="flex-1 px-2.5 py-1.5 rounded-lg bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-xs text-gray-900 dark:text-white outline-none focus:border-indigo-500"
+                                      className="w-full px-2.5 py-1.5 rounded-lg bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-xs text-gray-900 dark:text-white outline-none focus:border-indigo-500 font-mono text-[11px]"
                                     />
-                                    <label className="inline-flex items-center gap-1 text-[11px] text-gray-600 dark:text-gray-300 cursor-pointer flex-shrink-0">
-                                      <input
-                                        type="checkbox"
-                                        checked={ds.is_active !== false}
-                                        onChange={(e) => {
-                                          const val = e.target.checked;
-                                          setCmsContent((prev) => ({
-                                            ...prev,
-                                            footer: {
-                                              ...prev.footer,
-                                              dataSources: prev.footer.dataSources.map((d, i) =>
-                                                i === idx ? { ...d, is_active: val } : d
-                                              ),
-                                            },
-                                          }));
-                                        }}
-                                      />
-                                      Active
-                                    </label>
-                                    {(cmsContent.footer?.dataSources?.length || 0) > 1 && (
-                                      <button
-                                        type="button"
-                                        onClick={() => {
-                                          setCmsContent((prev) => ({
-                                            ...prev,
-                                            footer: {
-                                              ...prev.footer,
-                                              dataSources: prev.footer.dataSources.filter((_, i) => i !== idx),
-                                            },
-                                          }));
-                                        }}
-                                        className="text-red-500 hover:text-red-700 p-1 rounded hover:bg-red-50 dark:hover:bg-red-950/30"
-                                        title="Remove source"
-                                      >
-                                        <FiTrash2 size={12} />
-                                      </button>
-                                    )}
                                   </div>
-                                  <input
-                                    type="text"
-                                    placeholder="https://..."
-                                    value={ds.href}
-                                    onChange={(e) => {
-                                      const val = e.target.value;
-                                      setCmsContent((prev) => ({
-                                        ...prev,
-                                        footer: {
-                                          ...prev.footer,
-                                          dataSources: prev.footer.dataSources.map((d, i) =>
-                                            i === idx ? { ...d, href: val } : d
-                                          ),
-                                        },
-                                      }));
-                                    }}
-                                    className="w-full px-2.5 py-1.5 rounded-lg bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-xs text-gray-900 dark:text-white outline-none focus:border-indigo-500 font-mono text-[11px]"
-                                  />
-                                </div>
-                              ))}
+                                ),
+                              )}
                             </div>
                           </div>
                         </div>

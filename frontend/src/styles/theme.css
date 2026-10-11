@@ -184,11 +184,35 @@ body[data-theme="light"] .csv-btn {
 
 /* ── Leaflet ──────────────────────────────────────────────────────────────── */
 body[data-theme="light"] .leaflet-popup-content-wrapper {
-  background: #fff;
-  color: #333;
+  background: #ffffff !important;
+  color: #1e293b !important;
 }
 body[data-theme="light"] .leaflet-popup-tip {
-  background: #fff;
+  background: #ffffff !important;
+}
+body[data-theme="dark"] .leaflet-popup-content-wrapper {
+  background: #1e293b !important;
+  color: #f1f5f9 !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+body[data-theme="dark"] .leaflet-popup-tip {
+  background: #1e293b !important;
+}
+/* Popup text colors per theme */
+body[data-theme="light"] .leaflet-popup-content,
+body[data-theme="light"] .leaflet-popup-content * {
+  color: #1e293b !important;
+  background-color: transparent !important;
+}
+body[data-theme="dark"] .leaflet-popup-content,
+body[data-theme="dark"] .leaflet-popup-content * {
+  color: #f1f5f9 !important;
+  background-color: transparent !important;
+}
+/* But keep accent-colored spans (fatalities, titles) intact */
+body[data-theme="light"] .leaflet-popup-content strong,
+body[data-theme="dark"] .leaflet-popup-content strong {
+  background-color: transparent !important;
 }
 body[data-theme="light"] .leaflet-control-attribution {
   background: rgba(255, 255, 255, 0.9) !important;

@@ -1311,7 +1311,16 @@ function Drought() {
                       transition: "box-shadow 0.2s ease",
                     }}
                   >
-                    <div style={{ fontSize: 10.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--text-muted)", marginBottom: 2 }}>
+                    <div
+                      style={{
+                        fontSize: 10.5,
+                        fontWeight: 700,
+                        textTransform: "uppercase",
+                        letterSpacing: "0.08em",
+                        color: "var(--text-muted)",
+                        marginBottom: 2,
+                      }}
+                    >
                       90-Day Rainfall Deficit
                     </div>
                     <div
@@ -1347,7 +1356,16 @@ function Drought() {
                       transition: "box-shadow 0.2s ease",
                     }}
                   >
-                    <div style={{ fontSize: 10.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--text-muted)", marginBottom: 2 }}>
+                    <div
+                      style={{
+                        fontSize: 10.5,
+                        fontWeight: 700,
+                        textTransform: "uppercase",
+                        letterSpacing: "0.08em",
+                        color: "var(--text-muted)",
+                        marginBottom: 2,
+                      }}
+                    >
                       Standardized Precip Index
                     </div>
                     <div
@@ -1387,7 +1405,16 @@ function Drought() {
                       transition: "box-shadow 0.2s ease",
                     }}
                   >
-                    <div style={{ fontSize: 10.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--text-muted)", marginBottom: 2 }}>
+                    <div
+                      style={{
+                        fontSize: 10.5,
+                        fontWeight: 700,
+                        textTransform: "uppercase",
+                        letterSpacing: "0.08em",
+                        color: "var(--text-muted)",
+                        marginBottom: 2,
+                      }}
+                    >
                       Consecutive Dry Days (CDD)
                     </div>
                     <div
@@ -1422,7 +1449,16 @@ function Drought() {
                       transition: "box-shadow 0.2s ease",
                     }}
                   >
-                    <div style={{ fontSize: 10.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--text-muted)", marginBottom: 2 }}>
+                    <div
+                      style={{
+                        fontSize: 10.5,
+                        fontWeight: 700,
+                        textTransform: "uppercase",
+                        letterSpacing: "0.08em",
+                        color: "var(--text-muted)",
+                        marginBottom: 2,
+                      }}
+                    >
                       Moisture Deficit Regime
                     </div>
                     <div
@@ -1871,40 +1907,6 @@ function Drought() {
                     }}
                   >
                     <div>
-                      <div
-                        style={{
-                          display: "flex",
-                          justifyContent: "space-between",
-                          alignItems: "center",
-                          flexWrap: "wrap",
-                          gap: "6px",
-                        }}
-                      >
-                        <span
-                          style={{
-                            fontSize: 12,
-                            color: "var(--text-secondary)",
-                          }}
-                        >
-                          Projected Food Security Phase:
-                        </span>
-                        <span
-                          style={{
-                            padding: "4px 10px",
-                            borderRadius: 6,
-                            fontSize: 12,
-                            fontWeight: 700,
-                            color: cdsiSimulation.ipcResult.color,
-                            background: isDark
-                              ? "rgba(0,0,0,0.3)"
-                              : "rgba(255,255,255,0.8)",
-                            border: `1px solid ${cdsiSimulation.ipcResult.color}66`,
-                          }}
-                        >
-                          {cdsiSimulation.ipcResult.phase}
-                        </span>
-                      </div>
-
                       <div style={{ marginTop: 14 }}>
                         <div
                           style={{ fontSize: 11, color: "var(--text-muted)" }}
@@ -2013,287 +2015,6 @@ function Drought() {
                       Formula: CDSI = (PrecipDeficit × 0.40) + (VHI × 0.25) +
                       (LST × 0.20) + (SoilMoisture × 0.15)
                     </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* ── SECTION 4: REAL-TIME CLIMATE OUTLOOK & 30-DAY FORECAST ─── */}
-          <div className="hazard-section hazard-analysis-section">
-            <div className="hazard-map-card" style={{ overflow: "hidden" }}>
-              <div className="hazard-map-header">
-                <div className="hazard-map-header-left">
-                  <div className="hazard-map-indicator global" />
-                  <div className="hazard-map-title-group">
-                    <div className="hazard-map-label">
-                      Section 4 · Live Climate Outlook &amp; 30-Day Forecast
-                    </div>
-                    <div className="hazard-map-title">
-                      Atmospheric Water Deficit &amp; Evapotranspiration Balance
-                    </div>
-                  </div>
-                </div>
-
-                {/* Station Selector */}
-                <div
-                  className="zone-selector-row"
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 8,
-                  }}
-                >
-                  <span
-                    style={{
-                      fontSize: 12,
-                      color: "var(--text-muted)",
-                      flexShrink: 0,
-                    }}
-                  >
-                    Monitoring Hub:
-                  </span>
-                  <select
-                    value={selectedHub.id}
-                    onChange={(e) => {
-                      const found = DROUGHT_MONITORING_HUBS.find(
-                        (h) => h.id === e.target.value,
-                      );
-                      if (found) setSelectedHub(found);
-                    }}
-                    style={{
-                      flex: 1,
-                      minWidth: 0,
-                      maxWidth: "100%",
-                      background: isDark
-                        ? "rgba(245, 158, 11, 0.15)"
-                        : "var(--bg-card, #fff)",
-                      color: "var(--text-primary)",
-                      border: "1px solid rgba(245, 158, 11, 0.4)",
-                      borderRadius: 6,
-                      padding: "6px 32px 6px 12px",
-                      fontSize: 12,
-                      fontWeight: 600,
-                      outline: "none",
-                      cursor: "pointer",
-                    }}
-                  >
-                    {DROUGHT_MONITORING_HUBS.map((h) => (
-                      <option
-                        key={h.id}
-                        value={h.id}
-                        style={{
-                          background: isDark ? "#1a1a1a" : "#fff",
-                          color: isDark ? "#fff" : "#111",
-                        }}
-                      >
-                        {h.name} ({h.region})
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              <div style={{ padding: "20px" }}>
-                {/* Metrics cards */}
-                <div
-                  style={{
-                    display: "grid",
-                    gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
-                    gap: 14,
-                    marginBottom: 18,
-                  }}
-                >
-                  <div
-                    style={{
-                      background: "var(--bg-card-alt, rgba(0,0,0,0.02))",
-                      border: "1px solid var(--border-light)",
-                      borderLeft: "3px solid var(--metric-accent, #6366f1)",
-                      borderRadius: "0 14px 14px 0",
-                      padding: "14px 16px",
-                      transition: "box-shadow 0.2s ease",
-                    }}
-                  >
-                    <div style={{ fontSize: 10.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--text-muted)", marginBottom: 2 }}>
-                      Past 30-Day Rain
-                    </div>
-                    <div
-                      style={{
-                        fontSize: 26,
-                        fontWeight: 900,
-                        letterSpacing: "-0.02em",
-                        color: "#38bdf8",
-                        marginTop: 2,
-                      }}
-                    >
-                      {weatherLoading
-                        ? "…"
-                        : `${hubWeatherMetrics.past30Precip} mm`}
-                    </div>
-                    <div
-                      style={{
-                        fontSize: 11,
-                        color: "var(--text-muted)",
-                        marginTop: 4,
-                      }}
-                    >
-                      Cumulative water supply
-                    </div>
-                  </div>
-
-                  <div
-                    style={{
-                      background: "var(--bg-card-alt, rgba(0,0,0,0.02))",
-                      border: "1px solid var(--border-light)",
-                      borderLeft: "3px solid var(--metric-accent, #6366f1)",
-                      borderRadius: "0 14px 14px 0",
-                      padding: "14px 16px",
-                      transition: "box-shadow 0.2s ease",
-                    }}
-                  >
-                    <div style={{ fontSize: 10.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--text-muted)", marginBottom: 2 }}>
-                      14-Day Forecast Rain
-                    </div>
-                    <div
-                      style={{
-                        fontSize: 26,
-                        fontWeight: 900,
-                        letterSpacing: "-0.02em",
-                        color: "#a78bfa",
-                        marginTop: 2,
-                      }}
-                    >
-                      {weatherLoading
-                        ? "…"
-                        : `${hubWeatherMetrics.forecast14Precip} mm`}
-                    </div>
-                    <div
-                      style={{
-                        fontSize: 11,
-                        color: "var(--text-muted)",
-                        marginTop: 4,
-                      }}
-                    >
-                      Projected precipitation
-                    </div>
-                  </div>
-
-                  <div
-                    style={{
-                      background: "var(--bg-card-alt, rgba(0,0,0,0.02))",
-                      border: "1px solid var(--border-light)",
-                      borderLeft: "3px solid var(--metric-accent, #6366f1)",
-                      borderRadius: "0 14px 14px 0",
-                      padding: "14px 16px",
-                      transition: "box-shadow 0.2s ease",
-                    }}
-                  >
-                    <div style={{ fontSize: 10.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--text-muted)", marginBottom: 2 }}>
-                      Mean Max Daily Temp
-                    </div>
-                    <div
-                      style={{
-                        fontSize: 26,
-                        fontWeight: 900,
-                        letterSpacing: "-0.02em",
-                        color: "#f59e0b",
-                        marginTop: 2,
-                      }}
-                    >
-                      {weatherLoading
-                        ? "…"
-                        : `${hubWeatherMetrics.avgMaxTemp}°C`}
-                    </div>
-                    <div
-                      style={{
-                        fontSize: 11,
-                        color: "var(--text-muted)",
-                        marginTop: 4,
-                      }}
-                    >
-                      Atmospheric thermal load
-                    </div>
-                  </div>
-
-                  <div
-                    style={{
-                      background: `${hubWeatherMetrics.color}15`,
-                      border: `1px solid ${hubWeatherMetrics.color}44`,
-                      borderRadius: 10,
-                      padding: "12px 14px",
-                    }}
-                  >
-                    <div style={{ fontSize: 10.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--text-muted)", marginBottom: 2 }}>
-                      Water Balance Status
-                    </div>
-                    <div
-                      style={{
-                        fontSize: 17,
-                        fontWeight: 800,
-                        color: hubWeatherMetrics.color,
-                        marginTop: 4,
-                      }}
-                    >
-                      {hubWeatherMetrics.status}
-                    </div>
-                    <div
-                      style={{
-                        fontSize: 11,
-                        color: "var(--text-muted)",
-                        marginTop: 4,
-                      }}
-                    >
-                      Deficit Index: {hubWeatherMetrics.droughtIndex}/100
-                    </div>
-                  </div>
-                </div>
-
-                {/* Weather chart */}
-                <div style={{ height: 260, width: "100%" }}>
-                  <Bar
-                    data={hubWeatherChartData}
-                    options={{
-                      ...timeSeriesOptions,
-                      scales: {
-                        ...timeSeriesOptions.scales,
-                        y1: { display: false },
-                        y: {
-                          ...timeSeriesOptions.scales.y,
-                          title: {
-                            display: true,
-                            text: "Precipitation & ET0 (mm/day)",
-                            color: "#38bdf8",
-                            font: { size: 11, weight: "600" },
-                          },
-                        },
-                      },
-                    }}
-                  />
-                </div>
-
-                {/* Station footer */}
-                <div
-                  style={{
-                    marginTop: 14,
-                    background: "var(--bg-card-alt, rgba(0,0,0,0.02))",
-                    border: "1px solid var(--border-light)",
-                    borderRadius: 8,
-                    padding: 12,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    flexWrap: "wrap",
-                    gap: 10,
-                  }}
-                >
-                  <div style={{ fontSize: 12, color: "var(--text-secondary)" }}>
-                    <strong>Hub Details:</strong> {selectedHub.name} · Zone:{" "}
-                    {selectedHub.zoneType} · Climatological Rain:{" "}
-                    {selectedHub.climatology_annual_rain}mm/yr · Rainy Regimes:{" "}
-                    {selectedHub.main_season}
-                  </div>
-                  <div style={{ fontSize: 11, color: "var(--text-muted)" }}>
-                    Live forecast backed by Open-Meteo &amp; ECMWF IFS
                   </div>
                 </div>
               </div>

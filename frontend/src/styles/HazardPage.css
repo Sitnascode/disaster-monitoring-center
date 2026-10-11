@@ -353,6 +353,10 @@
      align — the fixed height acts as a minimum/default on standalone sections */
   flex: 1;
   min-height: 440px;
+  overflow: hidden;
+  /* Clip Leaflet popups that open near the top of the map so they don't
+     overlap the card header / toolbar above */
+  border-radius: 0;
 }
 
 /* Override fixed height when inside the side-by-side row — let flex handle it */
@@ -365,6 +369,31 @@
   width: 100% !important;
   height: 100% !important;
   border-radius: 0;
+}
+
+/* ── Leaflet popup styling ──────────────────────────────────────────────── */
+.hazard-map-container .leaflet-popup-content-wrapper {
+  border-radius: 10px !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.22) !important;
+  max-width: 260px !important;
+  min-width: 200px;
+  background: #ffffff !important;
+  color: #1e293b !important;
+}
+
+.hazard-map-container .leaflet-popup-tip {
+  background: #ffffff !important;
+}
+
+.hazard-map-container .leaflet-popup-content {
+  margin: 10px 12px !important;
+  font-size: 12px !important;
+  line-height: 1.6 !important;
+  color: #1e293b !important;
+}
+
+.hazard-map-container .leaflet-popup-tip-container {
+  display: block;
 }
 
 /* ── Map footer strip (status + source) ─────────────────────────────────── */

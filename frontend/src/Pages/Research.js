@@ -1,5 +1,4 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
 import ImageModal from "../Componenet/ImageModal";
 
 // ── Tiny inline SVG icons (no emoji, consistent sizing) ────────────────────
@@ -761,598 +760,8 @@ function uploadMatchesTopic(upload, topic) {
   return text.includes(topic.toLowerCase());
 }
 
-function timeAgo(dateStr) {
-  if (!dateStr) return "";
-  const diff = Date.now() - new Date(dateStr).getTime();
-  const d = Math.floor(diff / 86400000);
-  if (d === 0) return "Today";
-  if (d === 1) return "Yesterday";
-  if (d < 7) return `${d} days ago`;
-  if (d < 30) return `${Math.floor(d / 7)}w ago`;
-  if (d < 365) return `${Math.floor(d / 30)}mo ago`;
-  return `${Math.floor(d / 365)}y ago`;
-}
-
-// ── API Endpoint Row (used in the API Access section) ──────────────────────
-function ApiEndpointRow({ method, path, desc, params, example }) {
-  const [copied, setCopied] = useState(false);
-
-  const handleCopy = () => {
-    navigator.clipboard.writeText(example).then(() => {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    });
-  };
-
-  return (
-    <div
-      style={{
-        borderRadius: "12px",
-        border: "1px solid var(--border-light)",
-        overflow: "hidden",
-      }}
-    >
-      {/* Method + path bar */}
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: "10px",
-          padding: "10px 14px",
-          background: "rgba(99,102,241,0.05)",
-          borderBottom: "1px solid var(--border-light)",
-        }}
-      >
-        <span
-          style={{
-            padding: "2px 8px",
-            borderRadius: "5px",
-            fontSize: "10px",
-            fontWeight: 800,
-            letterSpacing: "0.06em",
-            background: "#10b981",
-            color: "#fff",
-            flexShrink: 0,
-          }}
-        >
-          {method}
-        </span>
-        <code
-          style={{
-            fontSize: "13px",
-            fontWeight: 700,
-            color: "#6366f1",
-            fontFamily: "monospace",
-            flex: 1,
-          }}
-        >
-          {path}
-        </code>
-      </div>
-
-      {/* Description + params */}
-      <div style={{ padding: "12px 14px" }}>
-        <p
-          style={{
-            margin: "0 0 8px",
-            fontSize: "13px",
-            color: "var(--text-secondary)",
-            lineHeight: 1.6,
-          }}
-        >
-          {desc}
-        </p>
-        {params.length > 0 && (
-          <div
-            style={{
-              display: "flex",
-              gap: "6px",
-              flexWrap: "wrap",
-              marginBottom: "10px",
-            }}
-          >
-            {params.map((p) => (
-              <code
-                key={p}
-                style={{
-                  fontSize: "11px",
-                  padding: "2px 7px",
-                  borderRadius: "5px",
-                  background: "rgba(99,102,241,0.08)",
-                  border: "1px solid rgba(99,102,241,0.18)",
-                  color: "#6366f1",
-                  fontFamily: "monospace",
-                }}
-              >
-                ?{p}
-              </code>
-            ))}
-          </div>
-        )}
-
-        {/* Example with copy button */}
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            borderRadius: "8px",
-            overflow: "hidden",
-            border: "1px solid var(--border-light)",
-          }}
-        >
-          <code
-            style={{
-              flex: 1,
-              padding: "7px 10px",
-              fontSize: "11px",
-              fontFamily: "monospace",
-              color: "var(--text-muted)",
-              background: "var(--bg-card-alt,rgba(128,128,128,0.04))",
-              overflow: "hidden",
-              whiteSpace: "nowrap",
-              textOverflow: "ellipsis",
-            }}
-          >
-            {example}
-          </code>
-          <button
-            onClick={handleCopy}
-            style={{
-              padding: "7px 11px",
-              border: "none",
-              borderLeft: "1px solid var(--border-light)",
-              cursor: "pointer",
-              background: copied ? "#10b981" : "var(--bg-card)",
-              color: copied ? "#fff" : "var(--text-muted)",
-              fontSize: "11px",
-              fontWeight: 600,
-              whiteSpace: "nowrap",
-              transition: "background 0.2s, color 0.2s",
-              flexShrink: 0,
-            }}
-          >
-            {copied ? "✓ Copied" : "Copy"}
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ── Download Modal ─────────────────────────────────────────────────────────
-const API_BASE = "http://localhost:5002";
-const DOWNLOAD_FORMATS = [
-  {
-    key: "original",
-    label: "Original File",
-    icon: Ico.file,
-    desc: "As uploaded",
-  },
-  { key: "json", label: "JSON", icon: Ico.braces, desc: "Metadata as JSON" },
-  { key: "csv", label: "CSV", icon: Ico.table, desc: "Spreadsheet-ready" },
-  {
-    key: "geojson",
-    label: "GeoJSON",
-    icon: Ico.globe,
-    desc: "Geographic format",
-  },
-  { key: "xlsx", label: "Excel", icon: Ico.excel, desc: "Microsoft Excel" },
-];
-
-function DownloadModal({ upload, accentColor, onClose }) {
-  const downloadUrl = (fmt) =>
-    `${API_BASE}/api/datasets/${upload._id}/download?format=${fmt}`;
-
-  // Determine which formats make sense for this upload
-  const nativeFormat = getFormatLabel(upload); // e.g. "GeoJSON", "CSV", "PDF", "Image"
-  const isFileUpload = upload.uploadType === "file";
-
-  // Conversion formats (JSON/CSV/GeoJSON/XLSX) are metadata-only exports —
-  // they always make sense as they export the dataset's metadata record.
-  // "original" only makes sense for real file uploads.
-  // We hide a conversion format if the file IS already that format natively
-  // (e.g. if the file is a GeoJSON, the GeoJSON tile would just re-download
-  // the same file — use "original" for that instead).
-  const nativeToKey = {
-    GeoJSON: "geojson",
-    CSV: "csv",
-    Excel: "xlsx",
-    JSON: "json",
-  };
-  const nativeKey = nativeToKey[nativeFormat]; // undefined if not a direct match
-
-  const formats = DOWNLOAD_FORMATS.filter((f) => {
-    if (f.key === "original") return isFileUpload; // only for real files
-    if (f.key === nativeKey) return false; // skip if already that format
-    return true;
-  });
-
-  return (
-    <div
-      style={{
-        position: "fixed",
-        inset: 0,
-        zIndex: 9100,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: "16px",
-      }}
-    >
-      {/* Backdrop */}
-      <div
-        onClick={onClose}
-        style={{
-          position: "absolute",
-          inset: 0,
-          background: "rgba(0,0,0,0.55)",
-          backdropFilter: "blur(4px)",
-        }}
-      />
-
-      {/* Panel */}
-      <div
-        style={{
-          position: "relative",
-          zIndex: 1,
-          background: "var(--bg-card)",
-          borderRadius: "18px",
-          border: "1px solid var(--border-light)",
-          boxShadow: "0 24px 80px rgba(0,0,0,0.22)",
-          width: "100%",
-          maxWidth: "520px",
-          maxHeight: "90vh",
-          display: "flex",
-          flexDirection: "column",
-          overflow: "hidden",
-        }}
-      >
-        {/* Header stripe */}
-        <div
-          style={{ height: "3px", background: accentColor, flexShrink: 0 }}
-        />
-
-        {/* Fixed header — never scrolls */}
-        <div
-          style={{
-            padding: "18px 22px 14px",
-            borderBottom: "1px solid var(--border-light)",
-            flexShrink: 0,
-            display: "flex",
-            alignItems: "flex-start",
-            justifyContent: "space-between",
-            background: "var(--bg-card)",
-          }}
-        >
-          <div>
-            <p
-              style={{
-                margin: "0 0 2px",
-                fontSize: "11px",
-                fontWeight: 700,
-                letterSpacing: "0.08em",
-                textTransform: "uppercase",
-                color: accentColor,
-              }}
-            >
-              Download Dataset
-            </p>
-            <h3
-              style={{
-                margin: 0,
-                fontSize: "15px",
-                fontWeight: 800,
-                color: "var(--text-primary)",
-                lineHeight: 1.3,
-              }}
-            >
-              {upload.title || "Dataset"}
-            </h3>
-          </div>
-          <button
-            onClick={onClose}
-            style={{
-              background: "none",
-              border: "none",
-              cursor: "pointer",
-              color: "var(--text-muted)",
-              padding: "4px",
-              borderRadius: "6px",
-              display: "flex",
-              alignItems: "center",
-              flexShrink: 0,
-              marginLeft: "12px",
-            }}
-          >
-            <svg
-              viewBox="0 0 14 14"
-              fill="none"
-              style={{ width: 14, height: 14 }}
-            >
-              <path
-                d="M2 2l10 10M12 2L2 12"
-                stroke="currentColor"
-                strokeWidth="1.8"
-                strokeLinecap="round"
-              />
-            </svg>
-          </button>
-        </div>
-
-        {/* Scrollable body */}
-        <div style={{ padding: "18px 22px", overflowY: "auto", flex: 1 }}>
-          {/* Download format grid */}
-          <p
-            style={{
-              margin: "0 0 10px",
-              fontSize: "11px",
-              fontWeight: 700,
-              letterSpacing: "0.07em",
-              textTransform: "uppercase",
-              color: "var(--text-muted)",
-            }}
-          >
-            Choose Format
-          </p>
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "1fr 1fr",
-              gap: "8px",
-              marginBottom: "22px",
-            }}
-          >
-            {formats.map((fmt) => (
-              <a
-                key={fmt.key}
-                href={downloadUrl(fmt.key)}
-                download
-                style={{
-                  display: "flex",
-                  alignItems: "flex-start",
-                  gap: "10px",
-                  padding: "11px 12px",
-                  borderRadius: "11px",
-                  border: `1px solid ${accentColor}28`,
-                  background: accentColor + "0c",
-                  textDecoration: "none",
-                  transition:
-                    "background 0.15s, border-color 0.15s, transform 0.15s",
-                  minWidth: 0,
-                  overflow: "hidden",
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.background = accentColor + "1e";
-                  e.currentTarget.style.borderColor = accentColor + "55";
-                  e.currentTarget.style.transform = "translateY(-1px)";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.background = accentColor + "0c";
-                  e.currentTarget.style.borderColor = accentColor + "28";
-                  e.currentTarget.style.transform = "translateY(0)";
-                }}
-              >
-                <span
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    width: 32,
-                    height: 32,
-                    borderRadius: "8px",
-                    background: accentColor + "14",
-                    flexShrink: 0,
-                    color: accentColor,
-                  }}
-                >
-                  {fmt.icon}
-                </span>
-                <div style={{ minWidth: 0, flex: 1, overflow: "hidden" }}>
-                  <div
-                    style={{
-                      fontSize: "13px",
-                      fontWeight: 700,
-                      color: accentColor,
-                      whiteSpace: "nowrap",
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                    }}
-                  >
-                    {fmt.label}
-                  </div>
-                  <div
-                    style={{
-                      fontSize: "10px",
-                      color: "var(--text-muted)",
-                      marginTop: "1px",
-                      whiteSpace: "nowrap",
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                    }}
-                  >
-                    {fmt.desc}
-                  </div>
-                </div>
-                <svg
-                  viewBox="0 0 16 16"
-                  fill="none"
-                  style={{
-                    width: 13,
-                    height: 13,
-                    marginLeft: "auto",
-                    flexShrink: 0,
-                    color: accentColor,
-                  }}
-                >
-                  <path
-                    d="M8 2v8M5 7l3 3 3-3"
-                    stroke="currentColor"
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                  <path
-                    d="M2 12h12"
-                    stroke="currentColor"
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                  />
-                </svg>
-              </a>
-            ))}
-          </div>
-
-          {/* ── Full API Access docs ─────────────────────────────── */}
-          <div
-            style={{
-              borderTop: "1px solid var(--border-light)",
-              paddingTop: "18px",
-            }}
-          >
-            {/* Header */}
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                marginBottom: "14px",
-              }}
-            >
-              <div
-                style={{ display: "flex", alignItems: "center", gap: "7px" }}
-              >
-                <div
-                  style={{
-                    width: "26px",
-                    height: "26px",
-                    borderRadius: "7px",
-                    background: "rgba(99,102,241,0.12)",
-                    border: "1px solid rgba(99,102,241,0.22)",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    flexShrink: 0,
-                  }}
-                >
-                  <svg
-                    viewBox="0 0 16 16"
-                    fill="none"
-                    style={{ width: 12, height: 12, color: "#6366f1" }}
-                  >
-                    <path
-                      d="M4 6l-3 2 3 2M12 6l3 2-3 2M9 3l-2 10"
-                      stroke="currentColor"
-                      strokeWidth="1.5"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                </div>
-                <span
-                  style={{
-                    fontSize: "13px",
-                    fontWeight: 800,
-                    color: "var(--text-primary)",
-                  }}
-                >
-                  API Access
-                </span>
-              </div>
-              <span
-                style={{
-                  padding: "2px 8px",
-                  borderRadius: "999px",
-                  fontSize: "10px",
-                  fontWeight: 700,
-                  letterSpacing: "0.06em",
-                  textTransform: "uppercase",
-                  background: "rgba(16,185,129,0.12)",
-                  border: "1px solid rgba(16,185,129,0.25)",
-                  color: "#10b981",
-                }}
-              >
-                Public · No Auth
-              </span>
-            </div>
-
-            {/* Endpoint 1 — list */}
-            <ApiEndpointRow
-              method="GET"
-              path="/api/datasets"
-              desc={`List all approved ${upload.hazardType} datasets.`}
-              params={["hazardType", "researcher", "yearFrom", "yearTo"]}
-              example={`${API_BASE}/api/datasets?hazardType=${upload.hazardType || ""}`}
-            />
-
-            <div style={{ height: "10px" }} />
-
-            {/* Endpoint 2 — download */}
-            <ApiEndpointRow
-              method="GET"
-              path="/api/datasets/:id/download"
-              desc="Download this dataset in your chosen format."
-              params={["format: json | csv | geojson | xlsx | original"]}
-              example={`${API_BASE}/api/datasets/${upload._id}/download?format=json`}
-            />
-
-            <div style={{ height: "12px" }} />
-
-            {/* Response example */}
-            <div
-              style={{
-                borderRadius: "9px",
-                border: "1px solid var(--border-light)",
-                overflow: "hidden",
-              }}
-            >
-              <div
-                style={{
-                  padding: "6px 12px",
-                  background: "rgba(99,102,241,0.07)",
-                  borderBottom: "1px solid var(--border-light)",
-                  fontSize: "10px",
-                  fontWeight: 700,
-                  color: "#6366f1",
-                  letterSpacing: "0.06em",
-                  textTransform: "uppercase",
-                }}
-              >
-                Example Response
-              </div>
-              <pre
-                style={{
-                  margin: 0,
-                  padding: "12px 14px",
-                  fontSize: "10px",
-                  lineHeight: 1.7,
-                  color: "var(--text-secondary)",
-                  background: "var(--bg-card-alt,rgba(128,128,128,0.04))",
-                  overflow: "auto",
-                  maxHeight: "140px",
-                  fontFamily:
-                    "'Fira Code','Cascadia Code','Consolas',monospace",
-                }}
-              >{`[
-  {
-    "id": "${upload._id}",
-    "title": ${JSON.stringify(upload.title || "")},
-    "hazardType": ${JSON.stringify(upload.hazardType || "")},
-    "fileName": ${JSON.stringify(upload.fileName || "")},
-    "uploadedBy": ${JSON.stringify(upload.uploadedBy || "")},
-    "date": "${upload.date ? new Date(upload.date).toISOString() : ""}",
-    "downloadUrl": "${API_BASE}/uploads/..."
-  }
-]`}</pre>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 // ── Dataset Card ───────────────────────────────────────────────────────────
-function UploadCard({ upload, onImageClick, accentColor, topic, onDownload }) {
+function UploadCard({ upload, onImageClick, accentColor, topic }) {
   const [hovered, setHovered] = useState(false);
   const [expanded, setExpanded] = useState(false);
 
@@ -1375,6 +784,13 @@ function UploadCard({ upload, onImageClick, accentColor, topic, onDownload }) {
     upload.uploadType === "file"
       ? upload.fileType?.startsWith("image/")
       : isImageUrl(upload.content || "");
+  const isFile =
+    upload.uploadType === "file" && Boolean(upload.path || upload.storedName);
+  const downloadUrl = isFile
+    ? upload._id
+      ? `http://localhost:5002/api/uploads/${upload._id}/download`
+      : getFileUrl(upload.path)
+    : null;
 
   // Format badge colour by type
   const formatColor =
@@ -1678,7 +1094,7 @@ function UploadCard({ upload, onImageClick, accentColor, topic, onDownload }) {
         style={{
           padding: "12px 20px 16px",
           display: "grid",
-          gridTemplateColumns: "repeat(3, 1fr)",
+          gridTemplateColumns: "1fr 1fr",
           gap: "8px",
         }}
       >
@@ -1785,100 +1201,107 @@ function UploadCard({ upload, onImageClick, accentColor, topic, onDownload }) {
           </a>
         )}
 
-        {/* Download — opens format chooser modal (rendered at page level) */}
-        <button
-          onClick={() => onDownload(upload)}
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: "5px",
-            padding: "8px 8px",
-            borderRadius: "9px",
-            background: "var(--bg-card-alt,rgba(128,128,128,0.06))",
-            border: "1px solid var(--border-light)",
-            color: "var(--text-primary)",
-            fontSize: "12px",
-            fontWeight: 700,
-            cursor: "pointer",
-            transition: "background 0.15s",
-            whiteSpace: "nowrap",
-            overflow: "hidden",
-          }}
-          onMouseEnter={(e) =>
-            (e.currentTarget.style.background = "rgba(128,128,128,0.12)")
-          }
-          onMouseLeave={(e) =>
-            (e.currentTarget.style.background =
-              "var(--bg-card-alt,rgba(128,128,128,0.06))")
-          }
-        >
-          <svg
-            viewBox="0 0 16 16"
-            fill="none"
-            style={{ width: 13, height: 13 }}
+        {/* Download — directly downloads file, or locked/unclickable for text & link */}
+        {isFile ? (
+          <a
+            href={downloadUrl}
+            download={upload.fileName || true}
+            target="_blank"
+            rel="noreferrer"
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "5px",
+              padding: "8px 8px",
+              borderRadius: "9px",
+              background: "var(--bg-card-alt,rgba(128,128,128,0.06))",
+              border: "1px solid var(--border-light)",
+              color: "var(--text-primary)",
+              fontSize: "12px",
+              fontWeight: 700,
+              textDecoration: "none",
+              cursor: "pointer",
+              transition: "background 0.15s",
+              whiteSpace: "nowrap",
+              overflow: "hidden",
+            }}
+            onMouseEnter={(e) =>
+              (e.currentTarget.style.background = "rgba(128,128,128,0.12)")
+            }
+            onMouseLeave={(e) =>
+              (e.currentTarget.style.background =
+                "var(--bg-card-alt,rgba(128,128,128,0.06))")
+            }
           >
-            <path
-              d="M8 2v8M5 7l3 3 3-3"
-              stroke="currentColor"
-              strokeWidth="1.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-            <path
-              d="M2 12h12"
-              stroke="currentColor"
-              strokeWidth="1.5"
-              strokeLinecap="round"
-            />
-          </svg>
-          Download
-        </button>
-
-        {/* Analyze — navigate to hazard page via React Router (no page reload) */}
-        <Link
-          to={`/hazards/${(topic?.id || upload.hazardType || "").toLowerCase()}`}
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: "5px",
-            padding: "8px 8px",
-            borderRadius: "9px",
-            background: cardAccent,
-            border: "none",
-            color: "#fff",
-            fontSize: "12px",
-            fontWeight: 700,
-            textDecoration: "none",
-            transition: "opacity 0.15s, transform 0.15s",
-            whiteSpace: "nowrap",
-            overflow: "hidden",
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.opacity = "0.88";
-            e.currentTarget.style.transform = "scale(1.02)";
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.opacity = "1";
-            e.currentTarget.style.transform = "scale(1)";
-          }}
-        >
-          <svg
-            viewBox="0 0 16 16"
-            fill="none"
-            style={{ width: 13, height: 13 }}
+            <svg
+              viewBox="0 0 16 16"
+              fill="none"
+              style={{ width: 13, height: 13 }}
+            >
+              <path
+                d="M8 2v8M5 7l3 3 3-3"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+              <path
+                d="M2 12h12"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+              />
+            </svg>
+            Download
+          </a>
+        ) : (
+          <button
+            disabled
+            title="Download not available for text or link entries"
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "5px",
+              padding: "8px 8px",
+              borderRadius: "9px",
+              background: "var(--bg-card-alt,rgba(128,128,128,0.03))",
+              border: "1px solid var(--border-light)",
+              color: "var(--text-muted)",
+              fontSize: "12px",
+              fontWeight: 600,
+              cursor: "not-allowed",
+              opacity: 0.45,
+              pointerEvents: "none",
+              whiteSpace: "nowrap",
+              overflow: "hidden",
+            }}
           >
-            <path
-              d="M2 12l3-4 3 2 3-5 3 3"
-              stroke="currentColor"
-              strokeWidth="1.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-          Analyze
-        </Link>
+            <svg
+              viewBox="0 0 16 16"
+              fill="none"
+              style={{ width: 13, height: 13, opacity: 0.7 }}
+            >
+              <rect
+                x="3"
+                y="7"
+                width="10"
+                height="8"
+                rx="1.5"
+                stroke="currentColor"
+                strokeWidth="1.4"
+              />
+              <path
+                d="M5 7V4.5a3 3 0 0 1 6 0V7"
+                stroke="currentColor"
+                strokeWidth="1.4"
+                strokeLinecap="round"
+              />
+            </svg>
+            Download
+          </button>
+        )}
       </div>
     </div>
   );
@@ -1921,7 +1344,6 @@ function Research() {
   const [searchQuery, setSearchQuery] = useState("");
   const [filters, setFilters] = useState(DEFAULT_FILTERS);
   const [filtersOpen, setFiltersOpen] = useState(false);
-  const [downloadUpload, setDownloadUpload] = useState(null);
   const [modalImage, setModalImage] = useState({
     isOpen: false,
     src: "",
@@ -2925,7 +2347,6 @@ function Research() {
                 upload={upload}
                 accentColor={topicColor}
                 topic={activeTopic}
-                onDownload={(u) => setDownloadUpload(u)}
                 onImageClick={(src, alt) =>
                   setModalImage({ isOpen: true, src, alt })
                 }
@@ -2941,15 +2362,6 @@ function Research() {
         altText={modalImage.alt}
         onClose={() => setModalImage({ isOpen: false, src: "", alt: "" })}
       />
-
-      {/* ── Download + API modal — rendered at page level as true overlay ── */}
-      {downloadUpload && (
-        <DownloadModal
-          upload={downloadUpload}
-          accentColor={topicColor}
-          onClose={() => setDownloadUpload(null)}
-        />
-      )}
     </div>
   );
 }

@@ -6,6 +6,8 @@ import {
   TileLayer,
   Tooltip,
   Marker,
+  CircleMarker,
+  Popup,
   useMap,
 } from "react-leaflet";
 import L from "leaflet";
@@ -138,18 +140,33 @@ export default function EarlyWarning() {
   const [mapLandslides, setMapLandslides] = useState([]);
 
   /* 7-Day History + 3-Day Forecast Trends */
+
   const [trends, setTrends] = useState({
-    fire: { history: [18, 22, 19, 31, 28, 42, 38], forecast: [45, 52, 48] },
-    earthquake: { history: [2, 1, 4, 2, 3, 5, 4], forecast: [4, 5, 3] },
+    fire: {
+      history: [18, 22, 19, 31, 28, 42, 38],
+      forecast: [45, 52, 48],
+    },
+    earthquake: {
+      history: [2, 1, 4, 2, 3, 5, 4],
+      forecast: [4, 5, 3],
+    },
     flood: {
       history: [140, 155, 160, 185, 210, 245, 230],
       forecast: [250, 270, 260],
     },
-    landslide: { history: [3, 2, 4, 3, 5, 6, 5], forecast: [6, 7, 6] },
-    drought: { history: [4, 4, 5, 5, 5, 6, 6], forecast: [6, 6, 6] },
-    volcano: { history: [2, 2, 2, 3, 2, 3, 2], forecast: [2, 3, 3] },
+    landslide: {
+      history: [3, 2, 4, 3, 5, 6, 5],
+      forecast: [6, 7, 6],
+    },
+    drought: {
+      history: [4, 4, 5, 5, 5, 6, 6],
+      forecast: [6, 6, 6],
+    },
+    volcano: {
+      history: [2, 2, 2, 3, 2, 3, 2],
+      forecast: [2, 3, 3],
+    },
   });
-
   /* Calculate exact active date window */
   const { dateRangeStart, dateRangeEnd } = useMemo(() => {
     const today = new Date().toISOString().slice(0, 10);
@@ -286,6 +303,10 @@ export default function EarlyWarning() {
     mapDroughts,
     mapLandslides,
   ]);
+
+  /* Forecast markers — derived from LIVE fetched data, not static */
+
+  /* ── Per-hazard forecast details: all events per day with probability ── */
 
   /* ── 100% Dynamic Hazard Threat & Severity Breakdown from Live Telemetry ── */
   const dynamicHazardIndicators = useMemo(() => {
@@ -552,7 +573,7 @@ export default function EarlyWarning() {
           </span>
           <br />
           <span style={{ color: "var(--text-primary)" }}>
-            Early Warning System
+            Early Warning Placeholder
           </span>
         </h1>
 
@@ -568,8 +589,7 @@ export default function EarlyWarning() {
             fontWeight: 400,
           }}
         >
-          Real-time satellite telemetry, automated threat scoring, and
-          predictive hazard dispatch across all Ethiopian regions.
+          Real-time satellite telemetry across all Ethiopian regions.
         </p>
 
         {/* Quick stats row */}
@@ -877,31 +897,7 @@ export default function EarlyWarning() {
                 Unified Multi-Hazard Early Warning Map
               </span>
             </div>
-            <span
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: "5px",
-                padding: "2px 8px",
-                borderRadius: "999px",
-                background: "rgba(34,197,94,0.12)",
-                border: "1px solid rgba(34,197,94,0.3)",
-                fontSize: "10px",
-                fontWeight: 800,
-                color: "#16a34a",
-              }}
-            >
-              <span
-                style={{
-                  width: "6px",
-                  height: "6px",
-                  borderRadius: "50%",
-                  background: "#16a34a",
-                  animation: "ewPulse 1.6s ease-in-out infinite",
-                }}
-              />
-              LIVE SENSORS CONNECTED
-            </span>
+
             {/* Last update timestamp */}
             {mapLastUpdate && (
               <span
@@ -1607,114 +1603,6 @@ export default function EarlyWarning() {
                 );
               })}
           </div>
-        </div>
-      </div>
-
-      {/* ════════════════ SECTION 2: 7-DAY HISTORICAL & 3-DAY FORECAST ═════ */}
-      <div
-        style={{
-          background: "var(--bg-card)",
-          border: "1px solid var(--border-light)",
-          borderRadius: "18px",
-          padding: "20px 22px",
-          marginBottom: "32px",
-          boxShadow: "0 6px 24px rgba(0,0,0,0.06)",
-        }}
-      >
-        <div
-          style={{
-            marginBottom: "16px",
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            flexWrap: "wrap",
-            gap: "10px",
-          }}
-        >
-          <div>
-            <div
-              style={{
-                fontSize: "11px",
-                textTransform: "uppercase",
-                letterSpacing: "0.08em",
-                color: "#eab308",
-                fontWeight: 800,
-              }}
-            >
-              Activity Trends &amp; Outlook
-            </div>
-            <h2
-              style={{
-                margin: "2px 0 0 0",
-                fontSize: "19px",
-                color: "var(--text-primary)",
-              }}
-            >
-              Multi-Hazard Trajectory (7-Day Telemetry + 3-Day Predictive
-              Forecast)
-            </h2>
-          </div>
-          <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-            <span
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: "5px",
-                fontSize: "11px",
-                color: "var(--text-muted)",
-              }}
-            >
-              <span
-                style={{ width: "12px", height: "2px", background: "#f97316" }}
-              />{" "}
-              7d Past Telemetry
-            </span>
-            <span
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: "5px",
-                fontSize: "11px",
-                color: "#0284c7",
-                fontWeight: 700,
-              }}
-            >
-              <span
-                style={{
-                  width: "12px",
-                  height: "2px",
-                  background: "#0284c7",
-                  borderTop: "1px dashed #0284c7",
-                }}
-              />{" "}
-              🔮 3d Projected Outlook
-            </span>
-          </div>
-        </div>
-
-        <div
-          className="ew-trend-grid"
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fill, minmax(250px, 1fr))",
-            gap: "12px",
-          }}
-        >
-          {[
-            "fire",
-            "earthquake",
-            "flood",
-            "landslide",
-            "drought",
-            "volcano",
-          ].map((id) => (
-            <TrendCard
-              key={id}
-              hazardId={id}
-              dataObj={trends[id]}
-              loading={mapLoading}
-            />
-          ))}
         </div>
       </div>
       {/* SECTION 3: REGIONAL RISK SCORECARD */}

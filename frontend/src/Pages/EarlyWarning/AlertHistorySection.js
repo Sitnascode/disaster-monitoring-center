@@ -2,8 +2,21 @@ import React, { useState, useEffect, useRef, useMemo } from "react";
 import { createPortal } from "react-dom";
 import { useTheme } from "../../ThemeContext";
 import {
-  FiArrowRight, FiShield, FiRefreshCw, FiMapPin, FiLayers, FiAlertTriangle,
-  FiBell, FiMail, FiSend, FiClock, FiCheckCircle, FiSearch, FiPhone, FiCheck, FiX,
+  FiArrowRight,
+  FiShield,
+  FiRefreshCw,
+  FiMapPin,
+  FiLayers,
+  FiAlertTriangle,
+  FiBell,
+  FiMail,
+  FiSend,
+  FiClock,
+  FiCheckCircle,
+  FiSearch,
+  FiPhone,
+  FiCheck,
+  FiX,
 } from "react-icons/fi";
 export function getLoggedInUser() {
   let userObj = null;
@@ -1099,27 +1112,6 @@ export function AlertHistorySection({
                         >
                           Details
                         </button>
-                        {isActive &&
-                          onResolveAlert &&
-                          getLoggedInUser()?.isAdmin && (
-                            <button
-                              onClick={() => onResolveAlert(alert.alertId)}
-                              style={{
-                                padding: "4px 8px",
-                                borderRadius: "6px",
-                                border: "1px solid rgba(34,197,94,0.4)",
-                                background: isDark
-                                  ? "rgba(34,197,94,0.15)"
-                                  : "#f0fdf4",
-                                color: "#16a34a",
-                                fontSize: "11px",
-                                fontWeight: 700,
-                                cursor: "pointer",
-                              }}
-                            >
-                              Resolve
-                            </button>
-                          )}
                       </div>
                     </td>
                   </tr>
@@ -1416,7 +1408,7 @@ export function AlertHistorySection({
                         }}
                       >
                         {detailModalAlert.dispatchedBy ||
-                          "EDRMC / SSGI Early Warning Desk"}
+                          "SSGI Disaster Alert Desk"}
                       </div>
                     </div>
                   </div>
@@ -1544,28 +1536,6 @@ export function AlertHistorySection({
                   <strong style={{ color: "#ef4444" }}>8335</strong>
                 </div>
                 <div style={{ display: "flex", gap: "8px" }}>
-                  {detailModalAlert.status === "Active" &&
-                    onResolveAlert &&
-                    getLoggedInUser()?.isAdmin && (
-                      <button
-                        onClick={() => {
-                          onResolveAlert(detailModalAlert.alertId);
-                          setDetailModalAlert(null);
-                        }}
-                        style={{
-                          padding: "6px 14px",
-                          borderRadius: "8px",
-                          border: "none",
-                          background: "#16a34a",
-                          color: "#fff",
-                          fontSize: "12px",
-                          fontWeight: 700,
-                          cursor: "pointer",
-                        }}
-                      >
-                        Mark as Resolved
-                      </button>
-                    )}
                   <button
                     onClick={() => setDetailModalAlert(null)}
                     style={{

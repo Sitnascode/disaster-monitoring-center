@@ -46,7 +46,7 @@ const ACTIVITIES = [
   {
     Icon: FiZap,
     title: "Earthquake Analysis",
-    desc: "Real-time seismic monitoring and post-event analysis using USGS feeds and local ground truth data.",
+    desc: "Near Real-time seismic monitoring and post-event analysis using USGS feeds and local ground truth data.",
     accent: "#f97316",
   },
   {
@@ -350,6 +350,38 @@ export default function About() {
           (u) => u.designation === "Researcher" || u.designation === "Faculty",
         );
         setDbResearchers(filtered);
+      })
+      .catch(() => {});
+  }, []);
+
+  /* Dynamic publications from approved uploads with title "Publication: ..." */
+  const [dbPublications, setDbPublications] = useState([]);
+  useEffect(() => {
+    fetch("/api/uploads?status=approved")
+      .then((r) => (r.ok ? r.json() : []))
+      .then((uploads) => {
+        const pubs = (uploads || [])
+          .filter((u) => u.title?.startsWith("Publication:"))
+          .map((u) => {
+            // Parse metadata from description:
+            // "Authors: X | Journal: Y | Year: Z | Type: W"
+            const desc = u.description || "";
+            const get = (key) => {
+              const match = desc.match(new RegExp(`${key}:\\s*([^|]+)`));
+              return match ? match[1].trim() : "";
+            };
+            return {
+              year: get("Year") || new Date(u.date).getFullYear().toString(),
+              title: u.title.replace(/^Publication:\s*/i, "").trim(),
+              authors: get("Authors") || u.uploadedBy || "SSGI",
+              journal: get("Journal") || "",
+              doi: u.content && u.content !== "#" ? u.content : "#",
+              type: get("Type") || "Journal Article",
+              fromDB: true,
+            };
+          })
+          .sort((a, b) => parseInt(b.year) - parseInt(a.year));
+        setDbPublications(pubs);
       })
       .catch(() => {});
   }, []);
@@ -1217,14 +1249,17 @@ export default function About() {
             <SectionLabel
               label="Academic Output"
               title="Publications & Reports"
-              subtitle="Peer-reviewed articles, technical reports and conference proceedings from the department."
+              subtitle={`Peer-reviewed articles, technical reports and conference proceedings from the department.${dbPublications.length > 0 ? ` Includes ${dbPublications.length} recently submitted publication(s).` : ""}`}
             />
             <div
               style={{ display: "flex", flexDirection: "column", gap: "13px" }}
             >
-              {PUBLICATIONS.map((pub) => {
+              {/* DB publications first (sorted newest), then static fallbacks not already covered */}
+              {[...dbPublications, ...PUBLICATIONS].map((pub, idx) => {
                 const isReport = pub.type === "Technical Report";
-                return <PubRow key={pub.title} pub={pub} isReport={isReport} />;
+                return (
+                  <PubRow key={pub.title + idx} pub={pub} isReport={isReport} />
+                );
               })}
             </div>
           </Section>
@@ -1652,7 +1687,7 @@ export default function About() {
                 marginTop: "5px",
               }}
             >
-              Satellite data · Real-time alerts · Open research
+              Satellite data · Near-Real-time alerts · Open research
             </div>
           </div>
 

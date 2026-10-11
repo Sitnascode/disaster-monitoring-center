@@ -30,7 +30,7 @@ const alertHistorySchema = new mongoose.Schema(
     telemetry: { type: mongoose.Schema.Types.Mixed, default: {} },
     dispatchedSmsCount: { type: Number, default: 0 },
     dispatchedEmailCount: { type: Number, default: 0 },
-    dispatchedBy: { type: String, default: "EDRMC / SSGI Early Warning Desk" },
+    dispatchedBy: { type: String, default: "SSGI Disaster Alert Desk" },
     eventFingerprint: { type: String, default: null, index: true },
   },
   { timestamps: true }

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from "react";
+import ReactDOM from "react-dom";
 import { useTheme } from "../../ThemeContext";
 import {
   FiArrowRight,
@@ -129,13 +130,16 @@ export function MapController({ flyTarget }) {
   return null;
 }
 
-/* ── MultiDaySparkline with Interactive Hover Behavior ────────────────────── */
+/* -- MultiDaySparkline with Interactive Hover Behavior -------------------- */
 export function MultiDaySparkline({
   history = [],
   forecast = [],
   color,
   unit = "",
   height = 52,
+  onForecastDotClick = null,
+  activeForecastDay = null,
+  forecastDetailsByDay = [[], [], []],
 }) {
   const [hoveredIdx, setHoveredIdx] = useState(null);
   const containerRef = useRef(null);
@@ -178,7 +182,6 @@ export function MultiDaySparkline({
     `L ${histPts[0][0]},${padY + h}`,
     "Z",
   ].join(" ");
-
   const fcPath = [
     `M ${allFcPts[0][0]},${allFcPts[0][1]}`,
     ...allFcPts.slice(1).map((p) => `L ${p[0]},${p[1]}`),
@@ -201,14 +204,13 @@ export function MultiDaySparkline({
   const handleMouseMove = (e) => {
     if (!containerRef.current) return;
     const rect = containerRef.current.getBoundingClientRect();
-    const relX = e.clientX - rect.left;
-    const svgX = (relX / rect.width) * totalW;
+    const svgX = ((e.clientX - rect.left) / rect.width) * totalW;
     let closestIdx = 0;
     let minDiff = Infinity;
     allPts.forEach((pt, idx) => {
-      const diff = Math.abs(pt[0] - svgX);
-      if (diff < minDiff) {
-        minDiff = diff;
+      const d = Math.abs(pt[0] - svgX);
+      if (d < minDiff) {
+        minDiff = d;
         closestIdx = idx;
       }
     });
@@ -226,8 +228,13 @@ export function MultiDaySparkline({
       style={{
         position: "relative",
         width: "100%",
-        cursor: "crosshair",
+        cursor: isForecast ? "pointer" : "crosshair",
         userSelect: "none",
+      }}
+      onClick={() => {
+        if (isForecast && onForecastDotClick && hoveredIdx !== null) {
+          onForecastDotClick(hoveredIdx - history.length);
+        }
       }}
     >
       <svg
@@ -251,8 +258,6 @@ export function MultiDaySparkline({
             <stop offset="100%" stopColor={color} stopOpacity="0.01" />
           </linearGradient>
         </defs>
-
-        {/* Partition line */}
         <line
           x1={partitionX}
           y1={2}
@@ -262,8 +267,6 @@ export function MultiDaySparkline({
           strokeDasharray="2 2"
           strokeWidth="1.2"
         />
-
-        {/* Historical Area & Solid Line */}
         <path d={histArea} fill={`url(#ew-grad-${color.replace("#", "")})`} />
         <path
           d={histPath}
@@ -273,8 +276,6 @@ export function MultiDaySparkline({
           strokeLinecap="round"
           strokeLinejoin="round"
         />
-
-        {/* Forecast Line (Dashed) */}
         <path
           d={fcPath}
           fill="none"
@@ -284,21 +285,59 @@ export function MultiDaySparkline({
           strokeLinecap="round"
           strokeLinejoin="round"
         />
-
-        {/* Base Forecast Nodes */}
-        {fcPts.map((p, idx) => (
-          <circle
-            key={idx}
-            cx={p[0]}
-            cy={p[1]}
-            r="3"
-            fill="var(--bg-card)"
-            stroke={color}
-            strokeWidth="1.8"
-          />
-        ))}
-
-        {/* Interactive Hover Crosshair & Glowing Indicator */}
+        {fcPts.map((p, idx) => {
+          const isActive = activeForecastDay === idx;
+          return (
+            <g
+              key={idx}
+              style={{ cursor: "pointer" }}
+              onClick={(e) => {
+                e.stopPropagation();
+                if (onForecastDotClick) onForecastDotClick(idx);
+              }}
+            >
+              <circle cx={p[0]} cy={p[1]} r="16" fill="transparent" />
+              <circle
+                cx={p[0]}
+                cy={p[1]}
+                r={isActive ? 8 : 6}
+                fill={color}
+                opacity={isActive ? 0.18 : 0.1}
+              />
+              {isActive && (
+                <circle
+                  cx={p[0]}
+                  cy={p[1]}
+                  r="9"
+                  fill="none"
+                  stroke={color}
+                  strokeWidth="1.5"
+                  opacity="0.40"
+                  strokeDasharray="2 2"
+                />
+              )}
+              <circle
+                cx={p[0]}
+                cy={p[1]}
+                r={isActive ? 5 : 4}
+                fill={isActive ? color : "var(--bg-card)"}
+                stroke={color}
+                strokeWidth={isActive ? 2.5 : 2}
+              />
+              <text
+                x={p[0]}
+                y={p[1] - 10}
+                textAnchor="middle"
+                fontSize="7.5"
+                fontWeight="800"
+                fill={color}
+                opacity={isActive ? 1 : 0.7}
+              >
+                +{idx + 1}d
+              </text>
+            </g>
+          );
+        })}
         {activePt && (
           <g>
             <line
@@ -329,8 +368,6 @@ export function MultiDaySparkline({
           </g>
         )}
       </svg>
-
-      {/* Interactive Tooltip on Hover */}
       {hoveredIdx !== null && activePt && (
         <div
           style={{
@@ -359,26 +396,59 @@ export function MultiDaySparkline({
           <span style={{ color }}>
             {allVals[hoveredIdx]} {unit}
           </span>
-          <span
-            style={{
-              fontSize: "8.5px",
-              padding: "0 3px",
-              borderRadius: "3px",
-              background: isForecast
-                ? "rgba(2,132,199,0.15)"
-                : "rgba(34,197,94,0.15)",
-              color: isForecast ? "#0284c7" : "#16a34a",
-            }}
-          >
-            {isForecast ? "🔮 Forecast" : "✓ Sensor"}
-          </span>
+          {isForecast ? (
+            <>
+              <span
+                style={{
+                  fontSize: "8.5px",
+                  padding: "0 3px",
+                  borderRadius: "3px",
+                  background: "rgba(2,132,199,0.15)",
+                  color: "#0284c7",
+                }}
+              >
+                🔮 Forecast
+              </span>
+              {(forecastDetailsByDay[hoveredIdx - history.length] || [])
+                .length > 0 && (
+                <span
+                  style={{
+                    fontSize: "8.5px",
+                    padding: "0 3px",
+                    borderRadius: "3px",
+                    background: `${color}18`,
+                    color,
+                    fontWeight: 800,
+                  }}
+                >
+                  {
+                    (forecastDetailsByDay[hoveredIdx - history.length] || [])
+                      .length
+                  }{" "}
+                  locations · click
+                </span>
+              )}
+            </>
+          ) : (
+            <span
+              style={{
+                fontSize: "8.5px",
+                padding: "0 3px",
+                borderRadius: "3px",
+                background: "rgba(34,197,94,0.15)",
+                color: "#16a34a",
+              }}
+            >
+              ✓ Sensor
+            </span>
+          )}
         </div>
       )}
     </div>
   );
 }
 
-/* ── TrendBadge ───────────────────────────────────────────────────────────── */
+/* -- TrendBadge --------------------------------------------------------------- */
 export function TrendBadge({ data }) {
   if (!data || data.length < 2) return null;
   const prev = data[data.length - 2] || 0;
@@ -426,7 +496,7 @@ const TREND_CONFIG = {
     label: "River Discharge",
     icon: "/icons/icons8-flood-64.png",
     color: "#3b82f6",
-    unit: "m³/s",
+    unit: "m\u00b3/s",
   },
   landslide: {
     label: "Landslide Reports",
@@ -447,243 +517,152 @@ const TREND_CONFIG = {
     unit: "alerts",
   },
 };
-
 const DAY_LABELS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Today"];
 const FORECAST_DAY_LABELS = ["+1d", "+2d", "+3d"];
 
-export function TrendCard({ hazardId, dataObj, loading }) {
+export function TrendCard({ hazardId, dataObj, loading, forecastLocations = [], forecastDetailsByDay = [[],[],[]] }) {
+  const [activeForecastDay, setActiveForecastDay] = useState(null);
+  const [popupPos, setPopupPos] = useState({ top: 0, left: 0, width: 280 });
+  const popupRef = useRef(null);
+  const cardRef = useRef(null);
+
+  useEffect(() => {
+    if (activeForecastDay === null) return;
+    const handler = (e) => {
+      if (popupRef.current && !popupRef.current.contains(e.target)) setActiveForecastDay(null);
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [activeForecastDay]);
+
+  useEffect(() => {
+    if (activeForecastDay === null || !cardRef.current) return;
+    const rect = cardRef.current.getBoundingClientRect();
+    const top = Math.min(rect.bottom + 6, window.innerHeight - 320);
+    const left = Math.max(0, Math.min(rect.left, window.innerWidth - Math.max(rect.width, 260) - 8));
+    setPopupPos({ top, left, width: Math.max(rect.width, 260) });
+  }, [activeForecastDay]);
+
   const cfg = TREND_CONFIG[hazardId];
   if (!cfg) return null;
-  const history = dataObj?.history || [2, 3, 2, 4, 3, 5, 4];
-  const forecast = dataObj?.forecast || [4, 5, 4];
-  const current = history[history.length - 1] ?? 0;
-  const forecastAvg = Math.round(
-    forecast.reduce((a, b) => a + b, 0) / forecast.length,
-  );
+
+  const history = dataObj?.history || [2,3,2,4,3,5,4];
+  const forecast = dataObj?.forecast || [4,5,4];
+  const current = history[history.length-1] ?? 0;
+  const forecastAvg = Math.round(forecast.reduce((a,b)=>a+b,0)/forecast.length);
+  const handleForecastDotClick = (dayIndex) => setActiveForecastDay(prev => prev === dayIndex ? null : dayIndex);
+  const fd = (n) => { const d = new Date(); d.setDate(d.getDate()+n); return d.toLocaleDateString("en-GB",{day:"numeric",month:"short"}); };
+  const activeDayItems = activeForecastDay !== null ? (forecastDetailsByDay[activeForecastDay] || []) : [];
 
   return (
-    <div
-      style={{
-        background: "var(--bg-card)",
-        border: "1px solid var(--border-light)",
-        borderRadius: "18px",
-        padding: "16px 18px",
-        display: "flex",
-        flexDirection: "column",
-        gap: "10px",
-        boxShadow: "0 2px 12px rgba(0,0,0,0.06), 0 1px 3px rgba(0,0,0,0.04)",
-        transition:
-          "transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease",
-        position: "relative",
-        overflow: "hidden",
-      }}
-      onMouseEnter={(e) => {
-        e.currentTarget.style.transform = "translateY(-2px)";
-        e.currentTarget.style.boxShadow = `0 8px 28px rgba(0,0,0,0.10), 0 2px 8px rgba(0,0,0,0.06)`;
-        e.currentTarget.style.borderColor = `${cfg.color}40`;
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.transform = "";
-        e.currentTarget.style.boxShadow = "";
-        e.currentTarget.style.borderColor = "";
-      }}
+    <div ref={cardRef}
+      style={{ background:"var(--bg-card)", border:"1px solid var(--border-light)", borderRadius:"18px",
+        padding:"16px 18px", display:"flex", flexDirection:"column", gap:"10px",
+        boxShadow:"0 2px 12px rgba(0,0,0,0.06)", position:"relative", overflow:"visible" }}
+      onMouseEnter={(e)=>{ e.currentTarget.style.transform="translateY(-2px)"; e.currentTarget.style.boxShadow=`0 8px 28px rgba(0,0,0,0.10)`; e.currentTarget.style.borderColor=`${cfg.color}40`; }}
+      onMouseLeave={(e)=>{ e.currentTarget.style.transform=""; e.currentTarget.style.boxShadow=""; e.currentTarget.style.borderColor=""; }}
     >
-      {/* Top color stripe */}
-      <div
-        style={{
-          position: "absolute",
-          top: 0,
-          left: 0,
-          right: 0,
-          height: "3px",
-          background: `linear-gradient(90deg, ${cfg.color}, ${cfg.color}66)`,
-          borderRadius: "18px 18px 0 0",
-        }}
-      />
-
-      {/* Header row: icon + label + trend badge */}
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          gap: "8px",
-        }}
-      >
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "10px",
-            flex: 1,
-            minWidth: 0,
-          }}
-        >
-          <div
-            style={{
-              width: "36px",
-              height: "36px",
-              borderRadius: "10px",
-              background: `${cfg.color}18`,
-              border: `1.5px solid ${cfg.color}30`,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              flexShrink: 0,
-            }}
-          >
-            <img
-              src={cfg.icon}
-              alt={cfg.label}
-              style={{
-                width: "20px",
-                height: "20px",
-                objectFit: "contain",
-                filter: "drop-shadow(0 1px 2px rgba(0,0,0,0.2))",
-              }}
-            />
+      <div style={{ position:"absolute", top:0, left:0, right:0, height:"3px",
+        background:`linear-gradient(90deg,${cfg.color},${cfg.color}66)`, borderRadius:"18px 18px 0 0" }} />
+      <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:"8px" }}>
+        <div style={{ display:"flex", alignItems:"center", gap:"10px", flex:1, minWidth:0 }}>
+          <div style={{ width:"36px", height:"36px", borderRadius:"10px", background:`${cfg.color}18`,
+            border:`1.5px solid ${cfg.color}30`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+            <img src={cfg.icon} alt={cfg.label} style={{ width:"20px", height:"20px", objectFit:"contain" }} />
           </div>
-          <div style={{ minWidth: 0 }}>
-            <div
-              style={{
-                fontSize: "11px",
-                fontWeight: 800,
-                color: "var(--text-muted)",
-                textTransform: "uppercase",
-                letterSpacing: "0.09em",
-                lineHeight: 1,
-                marginBottom: "2px",
-              }}
-            >
-              {cfg.unit}
-            </div>
-            <div
-              style={{
-                fontSize: "13px",
-                fontWeight: 700,
-                color: "var(--text-primary)",
-                lineHeight: 1.2,
-                whiteSpace: "nowrap",
-                overflow: "hidden",
-                textOverflow: "ellipsis",
-              }}
-            >
-              {cfg.label}
-            </div>
+          <div style={{ minWidth:0 }}>
+            <div style={{ fontSize:"11px", fontWeight:800, color:"var(--text-muted)", textTransform:"uppercase", letterSpacing:"0.09em", lineHeight:1, marginBottom:"2px" }}>{cfg.unit}</div>
+            <div style={{ fontSize:"13px", fontWeight:700, color:"var(--text-primary)", lineHeight:1.2, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>{cfg.label}</div>
           </div>
         </div>
         <TrendBadge data={history} />
       </div>
-
-      {/* Current value + forecast */}
-      <div
-        style={{
-          display: "flex",
-          alignItems: "flex-end",
-          justifyContent: "space-between",
-          gap: "8px",
-        }}
-      >
-        <div style={{ display: "flex", alignItems: "baseline", gap: "5px" }}>
-          <span
-            style={{
-              fontSize: "28px",
-              fontWeight: 900,
-              color: cfg.color,
-              lineHeight: 1,
-              letterSpacing: "-0.03em",
-            }}
-          >
+      <div style={{ display:"flex", alignItems:"flex-end", justifyContent:"space-between", gap:"8px" }}>
+        <div style={{ display:"flex", alignItems:"baseline", gap:"5px" }}>
+          <span style={{ fontSize:"28px", fontWeight:900, color:cfg.color, lineHeight:1, letterSpacing:"-0.03em" }}>
             {loading ? "—" : current.toLocaleString()}
           </span>
-          <span
-            style={{
-              fontSize: "10px",
-              color: "var(--text-muted)",
-              textTransform: "uppercase",
-              letterSpacing: "0.06em",
-              fontWeight: 600,
-            }}
-          >
-            now
-          </span>
+          <span style={{ fontSize:"10px", color:"var(--text-muted)", textTransform:"uppercase", letterSpacing:"0.06em", fontWeight:600 }}>now</span>
         </div>
-        <span
-          style={{
-            fontSize: "10px",
-            fontWeight: 700,
-            padding: "3px 8px",
-            borderRadius: "999px",
-            background: "rgba(99,102,241,0.10)",
-            border: "1px solid rgba(99,102,241,0.22)",
-            color: "#6366f1",
-            whiteSpace: "nowrap",
-          }}
-        >
+        <span style={{ fontSize:"10px", fontWeight:700, padding:"3px 8px", borderRadius:"999px",
+          background:"rgba(99,102,241,0.10)", border:"1px solid rgba(99,102,241,0.22)", color:"#6366f1", whiteSpace:"nowrap" }}>
           +3d: {forecastAvg}
         </span>
       </div>
-
-      {/* Sparkline */}
-      <div style={{ margin: "0" }}>
+      <div style={{ position:"relative" }}>
         {loading ? (
-          <div
-            style={{
-              height: "44px",
-              background: "rgba(128,128,128,0.07)",
-              borderRadius: "8px",
-            }}
-          />
+          <div style={{ height:"44px", background:"rgba(128,128,128,0.07)", borderRadius:"8px" }} />
         ) : (
-          <MultiDaySparkline
-            history={history}
-            forecast={forecast}
-            color={cfg.color}
-            unit={cfg.unit}
-            height={44}
-          />
+          <MultiDaySparkline history={history} forecast={forecast} color={cfg.color} unit={cfg.unit}
+            height={44} onForecastDotClick={handleForecastDotClick}
+            activeForecastDay={activeForecastDay} forecastDetailsByDay={forecastDetailsByDay} />
         )}
       </div>
-
-      {/* Axis Labels */}
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          fontSize: "8.5px",
-          color: "var(--text-muted)",
-          borderTop: "1px solid var(--border-light)",
-          paddingTop: "5px",
-        }}
-      >
-        <div style={{ display: "flex", gap: "5px" }}>
-          {DAY_LABELS.map((d, i) => (
-            <span
-              key={i}
-              style={{
-                color: i === 6 ? cfg.color : "var(--text-muted)",
-                fontWeight: i === 6 ? 700 : 400,
-              }}
-            >
-              {d}
-            </span>
+      <div style={{ display:"flex", justifyContent:"space-between", fontSize:"8.5px",
+        color:"var(--text-muted)", borderTop:"1px solid var(--border-light)", paddingTop:"5px" }}>
+        <div style={{ display:"flex", gap:"5px" }}>
+          {DAY_LABELS.map((d,i) => (
+            <span key={i} style={{ color:i===6?cfg.color:"var(--text-muted)", fontWeight:i===6?700:400 }}>{d}</span>
           ))}
         </div>
-        <div
-          style={{
-            display: "flex",
-            gap: "5px",
-            color: "#0284c7",
-            fontWeight: 700,
-          }}
-        >
-          {FORECAST_DAY_LABELS.map((d, i) => (
-            <span key={i}>{d}</span>
+        <div style={{ display:"flex", gap:"5px", color:"#0284c7", fontWeight:700 }}>
+          {FORECAST_DAY_LABELS.map((d,i) => (
+            <span key={i} style={{ cursor:"pointer", color:activeForecastDay===i?cfg.color:"#0284c7",
+              textDecoration:activeForecastDay===i?"underline":"none" }}
+              onClick={()=>handleForecastDotClick(i)}>{d}</span>
           ))}
         </div>
       </div>
+      {activeForecastDay !== null && ReactDOM.createPortal(
+        <div ref={popupRef} style={{
+          position:"fixed", top:`${popupPos.top}px`, left:`${popupPos.left}px`,
+          width:`${popupPos.width}px`, zIndex:99999,
+          background:"var(--bg-card)", border:`1.5px solid ${cfg.color}55`,
+          borderRadius:"14px", boxShadow:"0 12px 40px rgba(0,0,0,0.24)",
+          padding:"12px 14px", maxHeight:"300px", display:"flex", flexDirection:"column", overflow:"hidden",
+        }}>
+          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:"6px", flexShrink:0 }}>
+            <span style={{ fontSize:"10px", fontWeight:800, color:cfg.color, textTransform:"uppercase", letterSpacing:"0.07em" }}>
+              🔮 +{activeForecastDay+1}d · {fd(activeForecastDay+1)} · {cfg.label}
+            </span>
+            <button onClick={()=>setActiveForecastDay(null)}
+              style={{ background:"none", border:"none", cursor:"pointer", color:"var(--text-muted)", fontSize:"16px", padding:"0 2px", lineHeight:1 }}>
+              ×
+            </button>
+          </div>
+          <div style={{ fontSize:"9px", color:"var(--text-muted)", marginBottom:"6px", flexShrink:0 }}>
+            {activeDayItems.length} predicted locations · sorted by probability
+          </div>
+          <div style={{ overflowY:"auto", flex:1, display:"flex", flexDirection:"column", gap:"4px" }}>
+            {activeDayItems.length === 0 ? (
+              <div style={{ fontSize:"11px", color:"var(--text-muted)", textAlign:"center", padding:"12px" }}>No live data</div>
+            ) : activeDayItems.map((item, i) => {
+              const rc = item.risk==="High"?"#dc2626":item.risk==="Moderate"?"#f59e0b":"#16a34a";
+              return (
+                <div key={i} style={{ display:"flex", alignItems:"center", gap:"7px",
+                  padding:"5px 8px", borderRadius:"7px", background:`${rc}08`, border:`1px solid ${rc}20` }}>
+                  <div style={{ width:"34px", flexShrink:0, textAlign:"right" }}>
+                    <div style={{ fontSize:"10px", fontWeight:800, color:rc }}>{item.prob}%</div>
+                    <div style={{ height:"3px", borderRadius:"2px", background:"rgba(128,128,128,0.15)", marginTop:"2px" }}>
+                      <div style={{ height:"100%", width:`${item.prob}%`, borderRadius:"2px", background:rc }} />
+                    </div>
+                  </div>
+                  <div style={{ flex:1, minWidth:0 }}>
+                    <div title={item.place} style={{ fontSize:"11px", fontWeight:700, color:"var(--text-primary)",
+                      overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{item.place}</div>
+                    <div style={{ fontSize:"9.5px", color:"var(--text-muted)", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{item.detail}</div>
+                  </div>
+                  <span style={{ fontSize:"8.5px", fontWeight:800, color:rc, background:`${rc}14`,
+                    border:`1px solid ${rc}30`, padding:"1px 5px", borderRadius:"4px", whiteSpace:"nowrap", flexShrink:0 }}>{item.risk}</span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      , document.body)}
     </div>
   );
 }
+
 
 /* ── Region Dropdown Selector ─────────────────────────────────────────────── */
